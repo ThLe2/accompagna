@@ -156,6 +156,48 @@ nav{display:none!important}
 .tuiles.grandes .ico svg{width:2rem;height:2rem}
 .tuiles.grandes .t{font-size:1.15rem}
 #menu-note .message{max-width:46rem}
+
+/* Tableau de bord d'une séance (13/11/2026) */
+.tdb-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.8rem;margin-bottom:1.2rem}
+.tdb-kpi{background:#fff;border:1px solid var(--trame);border-radius:12px;padding:.9rem 1rem;display:flex;flex-direction:column;gap:.15rem}
+.tdb-kpi .l{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gris-moyen)}
+.tdb-kpi .v{font-size:1.8rem;font-weight:700;line-height:1.1;color:var(--prune-fonce)}
+.tdb-kpi .v.ok{color:#2E6B4F} .tdb-kpi .v.alerte{color:var(--rouge)}
+.tdb-kpi .s{font-size:.82rem;color:var(--gris-moyen)}
+.tdb-ligne{display:flex;flex-wrap:wrap;gap:1.2rem;align-items:stretch}
+.tdb-ligne>.carte{flex:1 1 22rem;min-width:0;margin-bottom:1.2rem}
+.tdb-ligne>.carte.large{flex:999 1 34rem}
+.tdb-suivre{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:.5rem;padding:.6rem 0;border-top:1px solid var(--trame)}
+.tdb-suivre .n{font-weight:600}
+.tdb-suivre .d{font-size:.85rem;color:var(--gris-moyen)}
+.tdb-puce{display:inline-block;font-size:.75rem;font-weight:700;border-radius:999px;padding:.05rem .6rem;margin-left:.4rem;white-space:nowrap}
+.tdb-puce.alerte{background:var(--rouge-clair);color:var(--rouge)}
+.tdb-puce.encours{background:var(--or-clair);color:#6B5000}
+.tdb-puce.neutre{background:var(--prune-clair);color:var(--prune-fonce)}
+.tdb-puce.ok{background:var(--vert-clair);color:#2E6B4F}
+.tdb-barre{display:grid;grid-template-columns:6rem minmax(0,1fr) 2rem;align-items:center;gap:.6rem;font-size:.85rem;margin:.35rem 0}
+.tdb-barre .fond{height:.85rem;background:var(--prune-clair);border-radius:4px;overflow:hidden}
+.tdb-barre .plein{height:100%;border-radius:4px;background:var(--prune)}
+.tdb-barre .plein.rouge{background:var(--rouge)}
+.tdb-barre .nb{font-weight:700;text-align:right}
+.tdb-theme{padding:.4rem 0}
+.tdb-theme .tete{display:flex;justify-content:space-between;gap:.5rem;font-size:.86rem}
+.tdb-theme .tete b{font-weight:600}
+.tdb-theme .ecart{font-size:.78rem;font-weight:700;color:var(--gris-moyen)}
+.tdb-theme .ecart.alerte{color:var(--rouge)}
+.tdb-theme .duo{display:grid;grid-template-columns:minmax(0,1fr) 2.8rem;gap:.25rem .5rem;align-items:center;font-size:.78rem;margin-top:.2rem}
+.tdb-theme .duo .fond{height:.6rem;background:var(--prune-clair);border-radius:3px;overflow:hidden}
+.tdb-theme .duo .plein{height:100%;background:var(--prune)}
+.tdb-theme .duo .plein.ref{background:#9DB8DA}
+.tdb-legende{display:flex;gap:1rem;font-size:.78rem;color:var(--gris-moyen)}
+.tdb-legende i{display:inline-block;width:.7rem;height:.7rem;border-radius:3px;margin-right:.35rem;vertical-align:-1px}
+.tdb-filtre{display:flex;gap:.4rem}
+.tdb-filtre button{min-height:2.4rem;padding:0 .9rem;border-radius:999px;border:1px solid var(--trame);background:#fff;color:var(--gris);font:inherit;font-size:.88rem;font-weight:600;cursor:pointer}
+.tdb-filtre button.actif{background:var(--prune);border-color:var(--prune);color:#fff}
+#tdb-tableau th button{all:unset;cursor:pointer}
+#tdb-tableau .mini{display:inline-block;width:5.5rem;height:.5rem;background:var(--prune-clair);border-radius:3px;overflow:hidden;vertical-align:middle;margin-right:.4rem}
+#tdb-tableau .mini span{display:block;height:100%;background:var(--prune)}
+.tdb-scroll{overflow-x:auto}
 </style>
 </head>
 <body>
@@ -410,6 +452,68 @@ nav{display:none!important}
         <div class="actions">
           <button class="btn btn-secondaire" id="btn-export-matrice">Exporter en CSV</button>
           <button class="btn-mini" id="btn-fermer-matrice">Fermer</button>
+        </div>
+      </div>
+    </section>
+
+
+    <section id="vue-tableau" hidden>
+      <div class="carte">
+        <h2>Tableau de bord d'une séance</h2>
+        <p class="sub" id="tdb-sous">Choisissez une séance pour voir où en est le groupe.</p>
+        <div class="grille">
+          <div><label for="tdb-seance">Séance</label><select id="tdb-seance"></select></div>
+          <div><label>&nbsp;</label>
+            <button class="btn-mini" id="tdb-recharger">Recharger</button></div>
+          <div><label>&nbsp;</label>
+            <button class="btn btn-secondaire" id="tdb-export" disabled>Exporter en CSV</button></div>
+        </div>
+        <div class="actions">
+          <label class="bascule"><input type="checkbox" id="tdb-test">
+            Afficher les groupes de test</label>
+        </div>
+        <div id="tdb-msg"></div>
+      </div>
+      <div id="tdb-corps" hidden>
+        <div class="tdb-kpis" id="tdb-kpis"></div>
+        <div class="tdb-ligne">
+          <div class="carte large">
+            <h2>Stagiaires à suivre</h2>
+            <p class="sub">Absent ou exclu, séance non terminée, ou évaluation non acquise.</p>
+            <div id="tdb-suivre"></div>
+          </div>
+          <div class="carte">
+            <h2>Progression du groupe</h2>
+            <div id="tdb-progression"></div>
+            <h2 style="margin-top:1.1rem">Notes à l'évaluation</h2>
+            <p class="sub" id="tdb-notes-sous"></p>
+            <div id="tdb-notes"></div>
+          </div>
+        </div>
+        <div class="tdb-ligne">
+          <div class="carte">
+            <h2>Points faibles par thème</h2>
+            <p class="sub">Taux de bonnes réponses, du plus faible au plus fort.</p>
+            <div class="tdb-legende"><span><i style="background:var(--prune)"></i>Cette séance</span>
+              <span><i style="background:#9DB8DA"></i>Tous les groupes</span></div>
+            <div id="tdb-themes"></div>
+          </div>
+          <div class="carte">
+            <h2>Questions à revoir</h2>
+            <p class="sub" id="tdb-questions-sous">Questions où la séance est au moins 10 points sous l'ensemble des groupes.</p>
+            <div class="tdb-scroll" id="tdb-questions"></div>
+          </div>
+        </div>
+        <div class="carte">
+          <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:.6rem">
+            <div><h2>Tous les stagiaires</h2>
+              <p class="sub">Cliquez sur un en-tête pour trier.</p></div>
+            <div class="tdb-filtre" role="group" aria-label="Filtre">
+              <button type="button" data-filtre="tous" class="actif" id="tdb-f-tous">Tous</button>
+              <button type="button" data-filtre="suivre" id="tdb-f-suivre">À suivre</button>
+            </div>
+          </div>
+          <div class="tdb-scroll" id="tdb-tableau"></div>
         </div>
       </div>
     </section>
@@ -842,6 +946,7 @@ nav{display:none!important}
     $('#vue-personnel').hidden = nom !== 'personnel';
     $('#vue-modules').hidden = nom !== 'modules';
     $('#vue-questions').hidden = nom !== 'questions';
+    $('#vue-tableau').hidden = nom !== 'tableau';
     if (nom === 'seances') chargerSeances();
     if (nom === 'groupes') dessinerGroupes();
     if (nom === 'stagiaires') chargerStagiaires();
@@ -850,6 +955,7 @@ nav{display:none!important}
     if (nom === 'personnel') chargerPersonnel();
     if (nom === 'modules') chargerModules();
     if (nom === 'questions') chargerQuestions();
+    if (nom === 'tableau') chargerTableau();
   }
 
   /* ------------------------------------------------------------------ *
@@ -879,6 +985,7 @@ nav{display:none!important}
     questions: '<path d="M4 5h16v11H9l-5 4z"/><path d="M10 9.2a2 2 0 1 1 2.6 1.9c-.4.2-.6.5-.6.9M12 13.5v.01"/>',
     scenario: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M12 12v6M9 15h6"/>',
     publication: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>',
+    tableau: '<path d="M4 20a8 8 0 1 1 16 0"/><path d="M12 20l4-6"/><path d="M7 13.5l1 .8M12 9v1.2M17 13.5l-1 .8"/>',
     assistant: '<rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 12v1M15 12v1M9.5 16h5"/>'
   };
   function icone(n) {
@@ -902,6 +1009,7 @@ nav{display:none!important}
                    ouvrir: function () { ouvrirOnglet('seances'); ouvrirSous('ouvertes'); } },
     programmees: { titre: 'Séances programmées', parent: 'm-seances',
                    ouvrir: function () { ouvrirOnglet('seances'); ouvrirSous('programmees'); } },
+    tableau:     { titre: 'Tableau de bord', parent: 'm-seances', ouvrir: function () { ouvrirOnglet('tableau'); } },
     resultats:   { titre: 'Résultats', parent: 'm-seances', ouvrir: function () { ouvrirOnglet('resultats'); } },
     copies:      { titre: 'Copies', parent: 'm-seances', ouvrir: function () { ouvrirOnglet('copies'); } },
     questions:   { titre: "Questions à l'assistant", parent: 'm-seances', ouvrir: function () { ouvrirOnglet('questions'); } },
@@ -935,6 +1043,7 @@ nav{display:none!important}
         { ico: 'ouvertes', t: 'Séances ouvertes', s: 'Ce qui se joue en ce moment', feuille: 'ouvertes' },
         { ico: 'programmees', t: 'Séances programmées', s: 'À venir et passées, formateur, stagiaires ciblés', feuille: 'programmees' },
         { ico: 'mes', t: 'Mes séances', s: 'Les séances que vous animez', lien: LIEN_MES },
+        { ico: 'tableau', t: 'Tableau de bord', s: 'Une séance : stagiaires à suivre, points faibles', feuille: 'tableau' },
         { ico: 'resultats', t: 'Résultats', s: 'Notes par groupe et par module, export CSV', feuille: 'resultats' },
         { ico: 'copies', t: 'Copies', s: 'Copies remises et annotations', feuille: 'copies' },
         { ico: 'questions', t: "Questions à l'assistant", s: 'Questions transmises par les stagiaires', feuille: 'questions', q: true }
@@ -947,6 +1056,7 @@ nav{display:none!important}
       'm-mes': { titre: 'Mes séances', parent: estGestionnaire ? 'accueil' : null, tuiles: [
         { ico: 'ouvertes', t: 'Séances ouvertes', s: 'Ce qui se joue en ce moment', feuille: 'ouvertes' },
         { ico: 'programmees', t: 'Séances programmées', s: 'Vos séances à venir et passées', feuille: 'programmees' },
+        { ico: 'tableau', t: 'Tableau de bord', s: 'Une séance : stagiaires à suivre, points faibles', feuille: 'tableau' },
         { ico: 'resultats', t: 'Résultats', s: 'Notes de vos groupes', feuille: 'resultats' },
         { ico: 'copies', t: 'Copies', s: 'Copies remises et annotations', feuille: 'copies' },
         { ico: 'questions', t: "Questions à l'assistant", s: 'Questions transmises par vos stagiaires', feuille: 'questions', q: true }
@@ -990,7 +1100,7 @@ nav{display:none!important}
     $('#fil').hidden = (c === racine() && !(modeFormateur() && estGestionnaire));
   }
   function cacherVues() {
-    ['seances', 'groupes', 'stagiaires', 'resultats', 'copies', 'personnel', 'modules', 'questions']
+    ['seances', 'groupes', 'stagiaires', 'resultats', 'copies', 'personnel', 'modules', 'questions', 'tableau']
       .forEach(function (n) { $('#vue-' + n).hidden = true; });
   }
   function montrerBlocs(vue) {
@@ -2086,6 +2196,353 @@ nav{display:none!important}
     a.href = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }));
     a.download = 'resultats_' + (MATRICE_META ? MATRICE_META.code : 'export') + '_' +
                  aujourdhui() + '.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Tableau de bord d'une séance (Accompagna, 13/11/2026)
+   * Sources : lms.v_seances, lms.sessions, lms.v_suivi_jour,
+   * eval.v_assiduite_seance (après la clôture), eval.tentatives,
+   * contenu.etapes, eval.v_copie, et lms.taux_reference_da pour la
+   * comparaison avec l'ensemble des groupes (agrégats seulement).
+   * Le périmètre est celui des droits : un formateur ne lit que ses
+   * séances ; en « Mes séances », la liste est limitée aux siennes.
+   * ------------------------------------------------------------------ */
+  var TDB = { seances: [], sessions: {}, lignes: [], filtre: 'tous', tri: 'nom', sens: 1, meta: null, pret: false };
+
+  function tdbPct(a, b) { return b ? Math.round(100 * a / b) : null; }
+  function tdbHeure(h) { return h ? String(h).slice(0, 5).replace(':', 'h') : ''; }
+  function tdbDate(d) { var p = String(d || '').slice(0, 10).split('-'); return p.length === 3 ? p[2] + '/' + p[1] + '/' + p[0] : ''; }
+  function tdbCloturee(se) {
+    if (!se || !se.date_fin && !se.date_debut) return false;
+    var d = String(se.date_fin || se.date_debut).slice(0, 10), h = String(se.heure_cloture || '23:59').slice(0, 5);
+    return new Date(d + 'T' + h + ':00') < new Date();
+  }
+
+  function chargerTableau() {
+    if (!TDB.pret) {
+      TDB.pret = true;
+      $('#tdb-seance').addEventListener('change', function () { dessinerTableau(+this.value); });
+      $('#tdb-recharger').addEventListener('click', function () { dessinerTableau(+$('#tdb-seance').value); });
+      $('#tdb-test').addEventListener('change', remplirSeancesTableau);
+      $('#tdb-export').addEventListener('click', exporterTableau);
+      Array.prototype.forEach.call(document.querySelectorAll('.tdb-filtre button'), function (b) {
+        b.addEventListener('click', function () { TDB.filtre = this.dataset.filtre; dessinerListeTableau(); });
+      });
+    }
+    $('#tdb-msg').innerHTML = '<p class="muted">Chargement…</p>';
+    return assurerMes().then(function () {
+      return Promise.all([
+        lire('lms', 'v_seances?select=*&order=date_debut.desc,id.desc'),
+        lire('lms', 'sessions?select=id,da_id,formateur_id,date_debut,date_fin,heure_debut,heure_cloture,est_fenetre')
+      ]);
+    }).then(function (r) {
+      TDB.sessions = {};
+      (r[1] || []).forEach(function (x) { TDB.sessions[x.id] = x; });
+      TDB.seances = (r[0] || []).filter(function (sx) {
+        return !modeFormateur() || (MES && MES.ids[sx.id]);
+      });
+      remplirSeancesTableau();
+    }).catch(function (e) { alerte('#tdb-msg', e.message); });
+  }
+
+  function remplirSeancesTableau() {
+    var test = $('#tdb-test').checked, auj = aujourdhui();
+    var liste = TDB.seances.filter(function (sx) { return test || !sx.est_test; });
+    var sel = $('#tdb-seance'), avant = +sel.value;
+    if (!liste.length) {
+      sel.innerHTML = '<option value="">Aucune séance</option>';
+      $('#tdb-corps').hidden = true; $('#tdb-export').disabled = true;
+      $('#tdb-msg').innerHTML = '<p class="muted">Aucune séance à afficher' +
+        (test ? '' : ' (cochez « Afficher les groupes de test » pour voir les séances de test)') + '.</p>';
+      return;
+    }
+    sel.innerHTML = liste.map(function (sx) {
+      return '<option value="' + sx.id + '">' + echappe(tdbDate(sx.date_debut) + ' · ' + (sx.da_libelle || sx.libelle) +
+        ' · ' + (sx.groupes || 'sans groupe') + (sx.est_test ? ' (test)' : '')) + '</option>';
+    }).join('');
+    var choix = liste.filter(function (sx) { return sx.id === avant; })[0] ||
+                liste.filter(function (sx) { return String(sx.date_debut) <= auj; })[0] || liste[liste.length - 1];
+    sel.value = choix.id;
+    dessinerTableau(choix.id);
+  }
+
+  function dessinerTableau(id) {
+    var sx = TDB.seances.filter(function (x) { return x.id === id; })[0];
+    var se = TDB.sessions[id];
+    if (!sx || !se) return;
+    var close = tdbCloturee(se);
+    $('#tdb-sous').textContent = (sx.da_libelle || sx.libelle) + ' · ' + tdbDate(sx.date_debut) +
+      (se.est_fenetre ? ' au ' + tdbDate(se.date_fin) : ' · ' + tdbHeure(se.heure_debut) + ' – clôture ' + tdbHeure(se.heure_cloture)) +
+      ' · ' + (sx.groupes || 'sans groupe') + (close ? ' · séance clôturée' : ' · séance en cours ou à venir');
+    $('#tdb-msg').innerHTML = '<p class="muted">Chargement…</p>';
+
+    Promise.all([
+      lire('lms', 'v_suivi_jour?select=*&session_id=eq.' + id),
+      close ? lire('eval', 'v_assiduite_seance?select=stagiaire_id,issue,non_acquis&session_id=eq.' + id) : Promise.resolve([]),
+      lire('eval', 'tentatives?select=id,stagiaire_id,etape_id,score_auto,bareme_total,soumise_le&session_id=eq.' + id),
+      appeler('lms', 'taux_reference_da', { p_da_id: se.da_id }).catch(function () { return []; })
+    ]).then(function (r) {
+      var suivi = r[0] || [], assid = r[1] || [], tent = r[2] || [], ref = r[3] || [];
+      var idsEtapes = {}, idsTent = [];
+      tent.forEach(function (t) { idsEtapes[t.etape_id] = true; idsTent.push(t.id); });
+      var etapesIds = Object.keys(idsEtapes);
+      return Promise.all([
+        etapesIds.length ? lire('contenu', 'etapes?select=id,titre,seuil_pct,evalue&id=in.(' + etapesIds.join(',') + ')') : [],
+        idsTent.length ? lire('eval', 'v_copie?select=tentative,etape,question,groupe,theme,enonce,juste&tentative=in.(' + idsTent.join(',') + ')') : []
+      ]).then(function (r2) {
+        calculerTableau({ seance: sx, session: se, close: close, suivi: suivi, assid: assid, tent: tent,
+                          ref: ref, etapes: r2[0] || [], copie: r2[1] || [] });
+      });
+    }).catch(function (e) { alerte('#tdb-msg', e.message); $('#tdb-corps').hidden = true; });
+  }
+
+  function calculerTableau(D) {
+    var etapes = {}, assid = {}, parStag = {};
+    D.etapes.forEach(function (e) { etapes[e.id] = e; });
+    D.assid.forEach(function (a) { assid[a.stagiaire_id] = a; });
+    D.tent.forEach(function (t) { (parStag[t.stagiaire_id] = parStag[t.stagiaire_id] || []).push(t); });
+
+    var seuils = {};
+    var lignes = D.suivi.map(function (s) {
+      var a = assid[s.stagiaire_id] || {};
+      var points = 0, bareme = 0, echec = null, notees = 0;
+      (parStag[s.stagiaire_id] || []).forEach(function (t) {
+        var e = etapes[t.etape_id];
+        if (!e || e.seuil_pct == null || !(Number(t.bareme_total) > 0)) return;
+        seuils[e.seuil_pct] = (seuils[e.seuil_pct] || 0) + 1;
+        notees++; points += Number(t.score_auto) || 0; bareme += Number(t.bareme_total);
+        var p = 100 * Number(t.score_auto) / Number(t.bareme_total);
+        if (p < Number(e.seuil_pct) && (!echec || p < echec.pct))
+          echec = { pct: Math.round(p), seuil: Number(e.seuil_pct), titre: e.titre, tentative: t.id };
+      });
+      var note = bareme ? Math.round(100 * points / bareme) : null;
+      var total = Number(s.etapes_total) || 0, faites = Number(s.etapes_faites) || 0;
+      var prog = total ? Math.min(100, Math.round(100 * faites / total)) : 0;
+      var connecte = !!s.arrivee, etat = s.etat || '';
+      var exclu = etat === 'exclu' || a.issue === 'exclu';
+      var motifs = [];
+      if (exclu) motifs.push({ m: 'Exclu', k: 'neutre', d: 'Accès retiré par décision du personnel' });
+      else if (!connecte && D.close) motifs.push({ m: 'Absent', k: 'alerte', d: 'Aucune connexion à la séance' });
+      else if (!connecte && etat.indexOf('appeler') >= 0) motifs.push({ m: 'Non connecté', k: 'alerte', d: 'À appeler (limite ' + (s.heure_limite || '') + ')' });
+      if (!exclu && connecte && D.close && a.issue === 'non terminé')
+        motifs.push({ m: 'Non terminée', k: 'encours', d: faites + ' étape(s) sur ' + total + ' à la clôture' });
+      if (echec) motifs.push({ m: 'Évaluation non acquise', k: 'alerte',
+        d: echec.titre + ' : ' + echec.pct + ' % pour un seuil de ' + echec.seuil + ' %', tentative: echec.tentative });
+
+      var statut, cle;
+      if (motifs.length) { statut = motifs[0].m; cle = motifs[0].k; }
+      else if (!connecte) { statut = D.close ? 'Absent' : 'Attendu'; cle = 'neutre'; }
+      else if (D.close || etat === 'terminé') { statut = (prog >= 100 || a.issue === 'terminé' || etat === 'terminé') ? 'Terminé' : 'En cours'; cle = statut === 'Terminé' ? 'ok' : 'neutre'; }
+      else { statut = etat ? etat.charAt(0).toUpperCase() + etat.slice(1) : 'En cours'; cle = etat === 'en retard' ? 'encours' : 'neutre'; }
+      var derniere = (parStag[s.stagiaire_id] || []).filter(function (t) { return etapes[t.etape_id] && etapes[t.etape_id].seuil_pct != null; })
+        .sort(function (x, y) { return String(y.soumise_le).localeCompare(String(x.soumise_le)); })[0];
+      return {
+        id: s.stagiaire_id, nom: (s.nom || '') + ' ' + (s.prenom || ''), nomTri: ((s.nom || '') + ' ' + (s.prenom || '')).toLowerCase(),
+        arrivee: s.arrivee || '', connecte: connecte, exclu: exclu, prog: prog, faites: faites, total: total,
+        note: note, notees: notees, statut: statut, cle: cle, motifs: motifs, suivre: motifs.length > 0,
+        termine: connecte && !exclu && (a.issue === 'terminé' || etat === 'terminé' || prog >= 100), acquis: note != null && !echec,
+        copie: (echec && echec.tentative) || (derniere && derniere.id) || null
+      };
+    });
+
+    var seuilType = Object.keys(seuils).sort(function (x, y) { return seuils[y] - seuils[x]; })[0];
+    TDB.lignes = lignes;
+    TDB.meta = { seance: D.seance, close: D.close, seuil: seuilType != null ? Number(seuilType) : 70 };
+
+    /* Taux par thème et par question : cette séance contre tous les groupes. */
+    var themes = {}, questions = {}, refQ = {}, refT = {}, autres = false;
+    D.copie.forEach(function (c) {
+      if (c.juste == null) return;
+      var th = c.theme || c.groupe || '(sans thème)';
+      var t = themes[th] = themes[th] || { n: 0, ok: 0 };
+      t.n++; if (c.juste) t.ok++;
+      var k = c.etape + '|' + c.question;
+      var q = questions[k] = questions[k] || { n: 0, ok: 0, enonce: c.enonce, theme: th };
+      q.n++; if (c.juste) q.ok++;
+    });
+    D.ref.forEach(function (r) {
+      refQ[r.etape + '|' + r.question] = r;
+      if (Number(r.groupes) > 1) autres = true;
+      var t = refT[r.theme] = refT[r.theme] || { n: 0, ok: 0 };
+      t.n += Number(r.reponses) || 0; t.ok += Number(r.reussites) || 0;
+    });
+    var listeThemes = Object.keys(themes).map(function (th) {
+      var g = tdbPct(themes[th].ok, themes[th].n), rt = refT[th], t = rt && autres ? tdbPct(rt.ok, rt.n) : null;
+      return { nom: th, g: g, t: t, ecart: t == null ? null : g - t };
+    }).sort(function (x, y) { return x.g - y.g; });
+    var listeQ = Object.keys(questions).map(function (k) {
+      var q = questions[k], r = refQ[k];
+      return { enonce: q.enonce, theme: q.theme, n: q.n, g: tdbPct(q.ok, q.n),
+               t: r && autres ? Number(r.taux) : null };
+    });
+    var aRevoir = autres
+      ? listeQ.filter(function (q) { return q.t != null && q.g <= q.t - 10; }).sort(function (x, y) { return (x.g - x.t) - (y.g - y.t); })
+      : listeQ.filter(function (q) { return q.g < 50; }).sort(function (x, y) { return x.g - y.g; });
+
+    dessinerIndicateurs(lignes, D);
+    dessinerSuivre(lignes);
+    dessinerRepartitions(lignes);
+    dessinerThemes(listeThemes, autres);
+    dessinerQuestions(aRevoir.slice(0, 10), autres, listeQ.length);
+    dessinerListeTableau();
+    $('#tdb-msg').innerHTML = D.suivi.length ? '' : '<p class="muted">Aucun stagiaire attendu sur cette séance.</p>';
+    $('#tdb-corps').hidden = !D.suivi.length;
+    $('#tdb-export').disabled = !D.suivi.length;
+  }
+
+  function dessinerIndicateurs(L, D) {
+    var con = L.filter(function (l) { return l.connecte; }).length;
+    var abs = L.filter(function (l) { return !l.connecte && !l.exclu; }).length;
+    var exc = L.filter(function (l) { return l.exclu; }).length;
+    var ter = L.filter(function (l) { return l.termine; }).length;
+    var notes = L.filter(function (l) { return l.note != null; });
+    var acq = notes.filter(function (l) { return l.acquis; }).length;
+    var moy = notes.length ? Math.round(notes.reduce(function (s, l) { return s + l.note; }, 0) / notes.length) : null;
+    var suiv = L.filter(function (l) { return l.suivre; }).length;
+    var k = [
+      { l: 'Attendus', v: L.length, s: 'stagiaires sur la séance' },
+      { l: 'Connectés', v: con, s: (abs ? abs + (D.close ? ' absent' : ' non connecté') + (abs > 1 ? 's' : '') : 'aucune absence') + (exc ? ' · ' + exc + ' exclu' + (exc > 1 ? 's' : '') : '') },
+      { l: 'Séance terminée', v: ter + ' / ' + con, s: D.close ? 'à la clôture de ' + tdbHeure(D.session.heure_cloture) : 'séance en cours' },
+      { l: 'Évaluation acquise', v: notes.length ? acq + ' / ' + notes.length : '—', s: moy != null ? 'moyenne ' + moy + ' %' : 'aucune copie évaluée', c: 'ok' },
+      { l: 'À suivre', v: suiv, s: suiv ? 'voir la liste ci-dessous' : 'personne pour le moment', c: suiv ? 'alerte' : '' }
+    ];
+    $('#tdb-kpis').innerHTML = k.map(function (x) {
+      return '<div class="tdb-kpi"><span class="l">' + x.l + '</span><span class="v ' + (x.c || '') + '">' +
+        echappe(x.v) + '</span><span class="s">' + echappe(x.s) + '</span></div>';
+    }).join('');
+  }
+
+  function lienCopie(id, texte) {
+    return id ? '<a href="#" data-tdb-copie="' + id + '">' + echappe(texte || 'Voir la copie') + '</a>' : '';
+  }
+
+  function dessinerSuivre(L) {
+    var s = L.filter(function (l) { return l.suivre; });
+    $('#tdb-suivre').innerHTML = s.length ? s.map(function (l) {
+      return l.motifs.map(function (m) {
+        return '<div class="tdb-suivre"><div><span class="n">' + echappe(l.nom) + '</span>' +
+          '<span class="tdb-puce ' + m.k + '">' + echappe(m.m) + '</span></div>' +
+          '<div class="d">' + echappe(m.d) + (m.tentative ? ' · ' + lienCopie(m.tentative) : '') + '</div></div>';
+      }).join('');
+    }).join('') : '<p class="muted">Aucun stagiaire à suivre sur cette séance.</p>';
+    brancherCopies('#tdb-suivre');
+  }
+
+  function barres(sel, tranches, total) {
+    $(sel).innerHTML = tranches.map(function (t) {
+      var w = total ? Math.round(100 * t.n / total) : 0;
+      return '<div class="tdb-barre"><span>' + echappe(t.l) + '</span><span class="fond"><span class="plein' +
+        (t.rouge ? ' rouge' : '') + '" style="width:' + w + '%;display:block"></span></span><span class="nb">' + t.n + '</span></div>';
+    }).join('');
+  }
+
+  function dessinerRepartitions(L) {
+    var pr = [{ l: '0 – 24 %', a: 0, b: 24 }, { l: '25 – 49 %', a: 25, b: 49 }, { l: '50 – 74 %', a: 50, b: 74 },
+              { l: '75 – 99 %', a: 75, b: 99 }, { l: 'Terminé', a: 100, b: 100 }];
+    pr.forEach(function (t) { t.n = L.filter(function (l) { return l.prog >= t.a && l.prog <= t.b; }).length; });
+    barres('#tdb-progression', pr, L.length);
+    var seuil = TDB.meta.seuil, notes = L.filter(function (l) { return l.note != null; });
+    var nt = [{ l: '< 50 %', a: 0, b: 49 }, { l: '50 – 69 %', a: 50, b: 69 }, { l: '70 – 84 %', a: 70, b: 84 }, { l: '85 – 100 %', a: 85, b: 100 }];
+    nt.forEach(function (t) { t.n = notes.filter(function (l) { return l.note >= t.a && l.note <= t.b; }).length; t.rouge = t.b < seuil; });
+    $('#tdb-notes-sous').textContent = notes.length
+      ? notes.length + ' stagiaire' + (notes.length > 1 ? 's' : '') + ' évalué' + (notes.length > 1 ? 's' : '') + ' · seuil de réussite ' + seuil + ' %'
+      : 'Aucune copie évaluée pour le moment.';
+    barres('#tdb-notes', notes.length ? nt : [], notes.length);
+  }
+
+  function dessinerThemes(T, autres) {
+    if (!T.length) { $('#tdb-themes').innerHTML = '<p class="muted">Aucune réponse corrigée pour le moment.</p>'; return; }
+    $('#tdb-themes').innerHTML = (autres ? '' : '<p class="muted" style="margin:.5rem 0 0">Pas encore d\'autres groupes sur ce module : la comparaison apparaîtra avec les suivants.</p>') +
+      T.map(function (t) {
+        var e = t.ecart == null ? '' : (t.ecart > 0 ? '+' : '') + t.ecart + ' pts';
+        return '<div class="tdb-theme"><div class="tete"><b>' + echappe(t.nom) + '</b><span class="ecart' +
+          (t.ecart != null && t.ecart <= -10 ? ' alerte' : '') + '">' + e + '</span></div><div class="duo">' +
+          '<span class="fond"><span class="plein" style="width:' + t.g + '%;display:block"></span></span><b>' + t.g + ' %</b>' +
+          (t.t != null ? '<span class="fond"><span class="plein ref" style="width:' + t.t + '%;display:block"></span></span><span class="muted">' + t.t + ' %</span>' : '') +
+          '</div></div>';
+      }).join('');
+  }
+
+  function dessinerQuestions(Q, autres, nb) {
+    $('#tdb-questions-sous').textContent = autres
+      ? 'Questions où la séance est au moins 10 points sous l\'ensemble des groupes.'
+      : 'Pas encore d\'autres groupes pour comparer : questions réussies par moins de la moitié de la séance.';
+    if (!nb) { $('#tdb-questions').innerHTML = '<p class="muted">Aucune réponse corrigée pour le moment.</p>'; return; }
+    if (!Q.length) { $('#tdb-questions').innerHTML = '<p class="muted">Aucune question à revoir.</p>'; return; }
+    $('#tdb-questions').innerHTML = '<table><tr><th>Question</th><th style="text-align:right">Séance</th>' +
+      (autres ? '<th style="text-align:right">Tous</th>' : '') + '</tr>' +
+      Q.map(function (q) {
+        var e = String(q.enonce || '').replace(/\s+/g, ' ');
+        if (e.length > 160) e = e.slice(0, 157) + '…';
+        return '<tr><td><div style="font-weight:600">' + echappe(e) + '</div><div class="muted" style="font-size:.78rem">' +
+          echappe(q.theme) + ' · ' + q.n + ' réponse' + (q.n > 1 ? 's' : '') + '</div></td>' +
+          '<td style="text-align:right;font-weight:700;color:var(--rouge);white-space:nowrap">' + q.g + ' %</td>' +
+          (autres ? '<td style="text-align:right;white-space:nowrap" class="muted">' + q.t + ' %</td>' : '') + '</tr>';
+      }).join('') + '</table>';
+  }
+
+  function dessinerListeTableau() {
+    $('#tdb-f-tous').classList.toggle('actif', TDB.filtre === 'tous');
+    $('#tdb-f-suivre').classList.toggle('actif', TDB.filtre === 'suivre');
+    var nS = TDB.lignes.filter(function (l) { return l.suivre; }).length;
+    $('#tdb-f-tous').textContent = 'Tous (' + TDB.lignes.length + ')';
+    $('#tdb-f-suivre').textContent = 'À suivre (' + nS + ')';
+    var cle = { nom: 'nomTri', arrivee: 'arrivee', prog: 'prog', note: 'note', statut: 'statut' }[TDB.tri];
+    var L = TDB.lignes.filter(function (l) { return TDB.filtre === 'tous' || l.suivre; }).slice().sort(function (a, b) {
+      var x = a[cle], y = b[cle];
+      if (x == null) x = -1; if (y == null) y = -1;
+      return (x > y ? 1 : x < y ? -1 : 0) * TDB.sens;
+    });
+    function th(k, t) {
+      var f = TDB.tri === k ? (TDB.sens === 1 ? ' ▲' : ' ▼') : '';
+      return '<th><button type="button" data-tdb-tri="' + k + '">' + t + f + '</button></th>';
+    }
+    $('#tdb-tableau').innerHTML = '<table><tr>' + th('nom', 'Stagiaire') + th('arrivee', 'Arrivée') + th('prog', 'Progression') +
+      th('note', 'Évaluation') + th('statut', 'Statut') + '<th>Détail</th></tr>' +
+      (L.length ? L.map(function (l) {
+        return '<tr><td style="font-weight:600">' + echappe(l.nom) + '</td><td>' + echappe(l.arrivee || '—') + '</td>' +
+          '<td><span class="mini"><span style="width:' + l.prog + '%"></span></span>' + l.faites + ' / ' + l.total + '</td>' +
+          '<td style="font-weight:600">' + (l.note != null ? l.note + ' %' : '—') + '</td>' +
+          '<td><span class="tdb-puce ' + l.cle + '" style="margin:0">' + echappe(l.statut) + '</span></td>' +
+          '<td>' + lienCopie(l.copie) + '</td></tr>';
+      }).join('') : '<tr><td colspan="6" class="muted">Personne dans ce filtre.</td></tr>') + '</table>';
+    Array.prototype.forEach.call(document.querySelectorAll('[data-tdb-tri]'), function (b) {
+      b.addEventListener('click', function () {
+        var k = this.dataset.tdbTri;
+        TDB.sens = TDB.tri === k ? -TDB.sens : 1; TDB.tri = k; dessinerListeTableau();
+      });
+    });
+    brancherCopies('#tdb-tableau');
+  }
+
+  function brancherCopies(sel) {
+    Array.prototype.forEach.call(document.querySelectorAll(sel + ' [data-tdb-copie]'), function (a) {
+      a.addEventListener('click', function (e) {
+        e.preventDefault();
+        var id = +this.dataset.tdbCopie;
+        var l = TDB.lignes.filter(function (x) { return x.copie === id; })[0];
+        ouvrirOnglet('copies');
+        ouvrirCopie(id);
+        if (l) $('#titre-copie').textContent = l.nom;
+      });
+    });
+  }
+
+  function exporterTableau() {
+    var m = TDB.meta || {};
+    var l = [['Nom et prénom', 'Arrivée', 'Étapes faites', 'Étapes au total', 'Évaluation (%)', 'Statut', 'Motifs']];
+    TDB.lignes.forEach(function (x) {
+      l.push([x.nom, x.arrivee, x.faites, x.total, x.note == null ? '' : x.note, x.statut,
+              x.motifs.map(function (mo) { return mo.m + ' : ' + mo.d; }).join(' | ')]);
+    });
+    var csv = l.map(function (r) {
+      return r.map(function (v) { return '"' + String(v).replace(/"/g, '""') + '"'; }).join(';');
+    }).join('\r\n');
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = 'tableau_de_bord_' + (m.seance ? (m.seance.da_code || 'seance') + '_' + String(m.seance.date_debut).slice(0, 10) : 'seance') + '.csv';
     a.click();
     URL.revokeObjectURL(a.href);
   }
