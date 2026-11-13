@@ -125,6 +125,37 @@ tr.total td{background:var(--prune-clair);color:var(--prune-fonce);font-weight:7
 tr.questions td{background:var(--fond);color:var(--gris-moyen);font-size:.74rem;
   text-align:center;padding:.2rem .6rem}
 footer{text-align:center;color:var(--gris-moyen);font-size:.72rem;padding:1.5rem 1rem 2rem}
+
+/* ---- Navigation par icônes (Accompagna, 13/11/2026) ---- */
+nav{display:none!important}
+#espaces,#role-espace{display:none!important}
+#vue-seances .sous-onglets,#vue-groupes .sous-onglets{display:none}
+.fil[hidden]{display:none}
+.fil{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;font-size:.85rem;color:var(--gris-moyen);margin:0 0 1.1rem}
+.fil a{color:var(--prune);text-decoration:none;font-weight:600}
+.fil a:hover{text-decoration:underline}
+.fil .sep{color:#AABDD6}
+.fil .ici{color:var(--prune-fonce);font-weight:600}
+#menu h1{font-size:1.45rem;color:var(--prune-fonce);margin:0 0 .25rem;letter-spacing:-.02em}
+#menu>.muted{margin:0 0 1.4rem}
+#menu h1+.muted[hidden]+.tuiles{margin-top:1.2rem}
+.tuile{line-height:1.3}
+.tuiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:1rem}
+.tuile{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:.55rem;text-align:left;
+  background:#fff;border:1px solid var(--trame);border-radius:12px;padding:1.2rem 1.2rem 1.1rem;cursor:pointer;
+  font-family:inherit;color:var(--gris);text-decoration:none;min-height:9.5rem;transition:border-color .15s,transform .15s}
+.tuile:hover,.tuile:focus-visible{border-color:var(--prune);transform:translateY(-2px);outline:none}
+.tuile .ico{width:3rem;height:3rem;border-radius:12px;background:var(--prune-clair);color:var(--prune);
+  display:flex;align-items:center;justify-content:center}
+.tuile .ico svg{width:1.6rem;height:1.6rem}
+.tuile .t{font-size:1.02rem;font-weight:700;color:var(--prune-fonce)}
+.tuile .s{font-size:.84rem;color:var(--gris-moyen);line-height:1.4}
+.tuile .pastille{position:absolute;top:.9rem;right:.9rem;margin:0}
+.tuiles.grandes .tuile{min-height:12rem;padding:1.6rem}
+.tuiles.grandes .ico{width:3.6rem;height:3.6rem}
+.tuiles.grandes .ico svg{width:2rem;height:2rem}
+.tuiles.grandes .t{font-size:1.15rem}
+#menu-note .message{max-width:46rem}
 </style>
 </head>
 <body>
@@ -168,7 +199,14 @@ footer{text-align:center;color:var(--gris-moyen);font-size:.72rem;padding:1.5rem
   </nav>
 
   <main>
-    <section id="vue-seances">
+    <div class="fil" id="fil" aria-label="Fil d'Ariane"></div>
+    <section id="menu" hidden>
+      <h1 id="menu-titre"></h1>
+      <p class="muted" id="menu-sous"></p>
+      <div class="tuiles" id="menu-tuiles"></div>
+      <div id="menu-note"></div>
+    </section>
+    <section id="vue-seances" hidden>
       <div class="sous-onglets" role="tablist">
         <button data-sous="ouvertes" class="actif">Séances ouvertes</button>
         <button data-sous="programmer" class="gestion-seule">Programmer une séance</button>
@@ -252,7 +290,7 @@ footer{text-align:center;color:var(--gris-moyen);font-size:.72rem;padding:1.5rem
     </section>
 
     <section id="vue-stagiaires" hidden>
-      <div class="carte">
+      <div class="carte" data-blocs="groupe">
         <h2>Groupe</h2>
         <div class="grille">
           <div style="grid-column:span 2"><label for="s-groupe">Choisir un groupe</label>
@@ -261,12 +299,12 @@ footer{text-align:center;color:var(--gris-moyen);font-size:.72rem;padding:1.5rem
         <div id="resume-groupe" class="muted" style="margin-top:.7rem"></div>
       </div>
 
-      <div class="carte">
+      <div class="carte" data-blocs="liste comptes">
         <h2>Inscrits</h2>
         <div id="liste-stagiaires"></div>
       </div>
 
-      <div class="carte">
+      <div class="carte" data-blocs="liste">
         <h2>Importer une liste</h2>
         <p class="sub">Collez les lignes de votre feuille de suivi, en-tête comprise —
           tabulations, points-virgules ou virgules, peu importe. Colonnes indispensables :
@@ -284,7 +322,7 @@ footer{text-align:center;color:var(--gris-moyen);font-size:.72rem;padding:1.5rem
         <div id="resultat-import"></div>
       </div>
 
-      <div class="carte">
+      <div class="carte" data-blocs="liste">
         <h2>Saisir un stagiaire</h2>
         <p class="sub">Sans feuille de suivi — par exemple pour une entreprise qui utilise l'outil
           avec ses propres stagiaires. La référence est proposée au numéro suivant du groupe :
@@ -310,7 +348,7 @@ footer{text-align:center;color:var(--gris-moyen);font-size:.72rem;padding:1.5rem
         <div id="msg-saisie"></div>
       </div>
 
-      <div class="carte">
+      <div class="carte" data-blocs="comptes">
         <h2>Comptes de connexion</h2>
         <p class="sub">Le compte est l'adresse Teams du stagiaire ; le mot de passe se calcule
           à partir de son nom et de son identifiant de suivi. Regardez d'abord ce qui serait fait.</p>
@@ -322,7 +360,7 @@ footer{text-align:center;color:var(--gris-moyen);font-size:.72rem;padding:1.5rem
         <div id="resultat-comptes"></div>
       </div>
 
-      <div class="carte">
+      <div class="carte" data-blocs="comptes">
         <h2>Entrée tardive</h2>
         <p class="sub">Un stagiaire déjà enregistré qui rejoint le groupe en cours de formation.</p>
         <div class="grille">
@@ -333,7 +371,7 @@ footer{text-align:center;color:var(--gris-moyen);font-size:.72rem;padding:1.5rem
         <div id="msg-inscrire"></div>
       </div>
 
-      <div class="carte">
+      <div class="carte" data-blocs="comptes">
         <h2>Sortie anticipée</h2>
         <p class="sub">L'inscription se ferme à la date indiquée. Rien n'est effacé : les tentatives restent au dossier.</p>
         <div class="grille">
@@ -789,6 +827,7 @@ footer{text-align:center;color:var(--gris-moyen);font-size:.72rem;padding:1.5rem
     $('#btn-enroler').addEventListener('click', enroler);
 
     chargerReferences().then(function () { chargerSeances(); dessinerGroupes(); compterQuestions(); });
+    demarrerMenus();
   }
 
   function ouvrirOnglet(nom) {
@@ -811,6 +850,210 @@ footer{text-align:center;color:var(--gris-moyen);font-size:.72rem;padding:1.5rem
     if (nom === 'personnel') chargerPersonnel();
     if (nom === 'modules') chargerModules();
     if (nom === 'questions') chargerQuestions();
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Navigation par icônes (Accompagna, 13/11/2026)
+   * Accueil → Administration → Gestion des groupes / séances / modules.
+   * Les écrans existants sont conservés : chaque icône finale ouvre
+   * l'onglet (et le sous-panneau) qu'elle remplace. Adresse : #/<clé>,
+   * le bouton « Précédent » du navigateur fonctionne.
+   * ------------------------------------------------------------------ */
+  var NB_QUESTIONS = 0;
+  var ICO = {
+    admin: '<path d="M12 3l8 3v5c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/>',
+    mes: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/><circle cx="12" cy="15.5" r="2"/>',
+    apercu: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    groupes: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.6"/><path d="M17 14c2.5 0 4.5 2 4.5 4.6"/>',
+    seances: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    modules: '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+    creer: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M18 8v6M15 11h6"/>',
+    liste: '<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1"/><circle cx="4.5" cy="12" r="1"/><circle cx="4.5" cy="18" r="1"/>',
+    comptes: '<circle cx="8" cy="12" r="4"/><path d="M12 12h9M18 12v3M21 12v2"/>',
+    personnel: '<rect x="4" y="3" width="16" height="18" rx="2"/><circle cx="12" cy="10" r="2.6"/><path d="M8 17c.6-2 2.1-3 4-3s3.4 1 4 3"/>',
+    programmer: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M12 13v5M9.5 15.5h5"/>',
+    ouvertes: '<circle cx="12" cy="12" r="9"/><path d="M10 8.5l5 3.5-5 3.5z"/>',
+    programmees: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    resultats: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+    copies: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
+    questions: '<path d="M4 5h16v11H9l-5 4z"/><path d="M10 9.2a2 2 0 1 1 2.6 1.9c-.4.2-.6.5-.6.9M12 13.5v.01"/>',
+    scenario: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M12 12v6M9 15h6"/>',
+    publication: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>',
+    assistant: '<rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 12v1M15 12v1M9.5 16h5"/>'
+  };
+  function icone(n) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
+      'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICO[n] || '') + '</svg>';
+  }
+  /* Feuilles : clé → titre, menu parent, ouverture de l'écran existant. */
+  var FEUILLES = {
+    groupes:     { titre: 'Création des groupes', parent: 'm-groupes', gestion: true,
+                   ouvrir: function () { ouvrirOnglet('groupes');
+                     Array.prototype.forEach.call(document.querySelectorAll('#vue-groupes [data-panneau]'), function (x) { x.hidden = false; }); } },
+    liste:       { titre: 'Création liste stagiaires', parent: 'm-groupes', gestion: true,
+                   ouvrir: function () { ouvrirOnglet('stagiaires'); montrerBlocs('liste'); } },
+    comptes:     { titre: 'Comptes, entrées et sorties', parent: 'm-groupes', gestion: true,
+                   ouvrir: function () { ouvrirOnglet('stagiaires'); montrerBlocs('comptes'); } },
+    personnel:   { titre: 'Personnel', parent: 'm-groupes', gestion: true,
+                   ouvrir: function () { ouvrirOnglet('personnel'); } },
+    programmer:  { titre: 'Programmer une séance', parent: 'm-seances', gestion: true,
+                   ouvrir: function () { ouvrirOnglet('seances'); ouvrirSous('programmer'); } },
+    ouvertes:    { titre: 'Séances ouvertes', parent: 'm-seances',
+                   ouvrir: function () { ouvrirOnglet('seances'); ouvrirSous('ouvertes'); } },
+    programmees: { titre: 'Séances programmées', parent: 'm-seances',
+                   ouvrir: function () { ouvrirOnglet('seances'); ouvrirSous('programmees'); } },
+    resultats:   { titre: 'Résultats', parent: 'm-seances', ouvrir: function () { ouvrirOnglet('resultats'); } },
+    copies:      { titre: 'Copies', parent: 'm-seances', ouvrir: function () { ouvrirOnglet('copies'); } },
+    questions:   { titre: "Questions à l'assistant", parent: 'm-seances', ouvrir: function () { ouvrirOnglet('questions'); } },
+    assistant:   { titre: 'Assistant du cours', parent: 'm-modules', gestion: true,
+                   ouvrir: function () { ouvrirOnglet('modules'); } }
+  };
+  var LIEN_MES = 'admin.html?espace=formateurs';
+  var LIEN_ADMIN = 'admin.html?espace=administration';
+  /* Menus : clé → titre, parent, tuiles. Une tuile ouvre un menu, une feuille,
+     un lien ou la console de publication du poste. */
+  function menus() {
+    return {
+      'accueil': { titre: 'Accompagna', sous: 'Que souhaitez-vous faire ?', grandes: true, tuiles: [
+        { ico: 'admin', t: 'Administration', s: 'Groupes, séances et modules', menu: 'm-admin' },
+        { ico: 'mes', t: 'Mes séances', s: 'Les séances que vous animez', lien: LIEN_MES },
+        { ico: 'apercu', t: 'Aperçu stagiaires', s: "Le portail vu par un stagiaire, avec des données fictives : rien n'est enregistré", lien: 'portail.html?demo', nouvel: true }
+      ] },
+      'm-admin': { titre: 'Administration', parent: 'accueil', sous: 'Choisissez un domaine.', grandes: true, tuiles: [
+        { ico: 'groupes', t: 'Gestion des groupes', s: 'Groupes, stagiaires, comptes et personnel', menu: 'm-groupes' },
+        { ico: 'seances', t: 'Gestion des séances', s: 'Programmation, suivi, résultats et copies', menu: 'm-seances', q: true },
+        { ico: 'modules', t: 'Gestion des modules', s: 'Nouveaux DA, publication et assistant du cours', menu: 'm-modules' }
+      ] },
+      'm-groupes': { titre: 'Gestion des groupes', parent: 'm-admin', tuiles: [
+        { ico: 'creer', t: 'Création des groupes', s: 'Créer un groupe et voir les groupes existants', feuille: 'groupes' },
+        { ico: 'liste', t: 'Création liste stagiaires', s: 'Importer une liste ou saisir un stagiaire', feuille: 'liste' },
+        { ico: 'comptes', t: 'Comptes, entrées et sorties', s: 'Comptes de connexion, entrée tardive, sortie anticipée', feuille: 'comptes' },
+        { ico: 'personnel', t: 'Personnel', s: 'Formateurs, gestionnaires et administrateurs', feuille: 'personnel' }
+      ] },
+      'm-seances': { titre: 'Gestion des séances', parent: 'm-admin', tuiles: [
+        { ico: 'programmer', t: 'Programmer une séance', s: 'Un module, un groupe, une date', feuille: 'programmer' },
+        { ico: 'ouvertes', t: 'Séances ouvertes', s: 'Ce qui se joue en ce moment', feuille: 'ouvertes' },
+        { ico: 'programmees', t: 'Séances programmées', s: 'À venir et passées, formateur, stagiaires ciblés', feuille: 'programmees' },
+        { ico: 'mes', t: 'Mes séances', s: 'Les séances que vous animez', lien: LIEN_MES },
+        { ico: 'resultats', t: 'Résultats', s: 'Notes par groupe et par module, export CSV', feuille: 'resultats' },
+        { ico: 'copies', t: 'Copies', s: 'Copies remises et annotations', feuille: 'copies' },
+        { ico: 'questions', t: "Questions à l'assistant", s: 'Questions transmises par les stagiaires', feuille: 'questions', q: true }
+      ] },
+      'm-modules': { titre: 'Gestion des modules', parent: 'm-admin', tuiles: [
+        { ico: 'scenario', t: 'Nouveau DA depuis un scénario', s: 'Ouvre la console de ce poste', console: 'scenario' },
+        { ico: 'publication', t: 'Console de publication des DA', s: 'Ouvre la console de ce poste', console: 'publication' },
+        { ico: 'assistant', t: 'Assistant du cours', s: "Modules ouverts aux questions des stagiaires", feuille: 'assistant' }
+      ] },
+      'm-mes': { titre: 'Mes séances', parent: estGestionnaire ? 'accueil' : null, tuiles: [
+        { ico: 'ouvertes', t: 'Séances ouvertes', s: 'Ce qui se joue en ce moment', feuille: 'ouvertes' },
+        { ico: 'programmees', t: 'Séances programmées', s: 'Vos séances à venir et passées', feuille: 'programmees' },
+        { ico: 'resultats', t: 'Résultats', s: 'Notes de vos groupes', feuille: 'resultats' },
+        { ico: 'copies', t: 'Copies', s: 'Copies remises et annotations', feuille: 'copies' },
+        { ico: 'questions', t: "Questions à l'assistant", s: 'Questions transmises par vos stagiaires', feuille: 'questions', q: true }
+      ] }
+    };
+  }
+  function racine() { return modeFormateur() ? 'm-mes' : 'accueil'; }
+  function cleCourante() {
+    var c = (location.hash || '').replace(/^#\/?/, '');
+    var M = menus();
+    if (M[c] || FEUILLES[c]) return c;
+    return racine();
+  }
+  function autorisee(c) {
+    var M = menus();
+    if (modeFormateur()) {
+      if (c === 'm-mes') return true;
+      return !!(FEUILLES[c] && !FEUILLES[c].gestion && FEUILLES[c].parent === 'm-seances');
+    }
+    return !!(M[c] && c !== 'm-mes') || !!FEUILLES[c];
+  }
+  function parentDe(c) {
+    if (FEUILLES[c]) return modeFormateur() ? 'm-mes' : FEUILLES[c].parent;
+    var m = menus()[c]; return m ? m.parent : null;
+  }
+  function titreDe(c) { return FEUILLES[c] ? FEUILLES[c].titre : (menus()[c] || {}).titre; }
+  function dessinerFil(c) {
+    var chaine = [], x = c;
+    while (x) { chaine.unshift(x); x = parentDe(x); }
+    var h = [];
+    /* Un gestionnaire dans « Mes séances » remonte vers l'accueil de l'administration. */
+    if (modeFormateur() && estGestionnaire) h.push('<a href="' + LIEN_ADMIN + '#/accueil">Accueil</a>');
+    chaine.forEach(function (k, i) {
+      if (modeFormateur() && k === 'accueil') return;
+      var t = k === 'accueil' ? 'Accueil' : titreDe(k);
+      if (h.length) h.push('<span class="sep">›</span>');
+      h.push(i === chaine.length - 1 ? '<span class="ici">' + echappe(t) + '</span>'
+                                      : '<a href="#/' + k + '">' + echappe(t) + '</a>');
+    });
+    $('#fil').innerHTML = h.join(' ');
+    $('#fil').hidden = (c === racine() && !(modeFormateur() && estGestionnaire));
+  }
+  function cacherVues() {
+    ['seances', 'groupes', 'stagiaires', 'resultats', 'copies', 'personnel', 'modules', 'questions']
+      .forEach(function (n) { $('#vue-' + n).hidden = true; });
+  }
+  function montrerBlocs(vue) {
+    Array.prototype.forEach.call(document.querySelectorAll('#vue-stagiaires [data-blocs]'), function (c) {
+      var b = c.getAttribute('data-blocs').split(' ');
+      c.hidden = b.indexOf('groupe') < 0 && b.indexOf(vue) < 0;
+    });
+  }
+  function tuileHtml(t) {
+    var attrs, balise = 'button';
+    if (t.lien) { balise = 'a'; attrs = ' href="' + t.lien + '"' + (t.nouvel ? ' target="_blank" rel="noopener"' : ''); }
+    else if (t.menu) attrs = ' type="button" data-aller="' + t.menu + '"';
+    else if (t.feuille) attrs = ' type="button" data-aller="' + t.feuille + '"';
+    else attrs = ' type="button" data-console="' + t.console + '"';
+    return '<' + balise + ' class="tuile"' + attrs + '>' +
+      (t.q ? '<span class="pastille pastille-q"' + (NB_QUESTIONS ? '' : ' hidden') + '>' + NB_QUESTIONS + '</span>' : '') +
+      '<span class="ico">' + icone(t.ico) + '</span>' +
+      '<span class="t">' + echappe(t.t) + '</span><span class="s">' + echappe(t.s) + '</span></' + balise + '>';
+  }
+  function afficher() {
+    var c = cleCourante();
+    if (!autorisee(c)) { location.replace('#/' + racine()); return; }
+    dessinerFil(c);
+    $('#menu-note').innerHTML = '';
+    var m = menus()[c];
+    if (m) {
+      cacherVues();
+      $('#menu').hidden = false;
+      $('#menu-titre').textContent = m.titre;
+      $('#menu-sous').textContent = m.sous || '';
+      $('#menu-sous').hidden = !m.sous;
+      var g = $('#menu-tuiles');
+      g.className = 'tuiles' + (m.grandes ? ' grandes' : '');
+      g.innerHTML = m.tuiles.map(tuileHtml).join('');
+      document.title = 'Accompagna — ' + (c === 'accueil' ? 'Accueil' : m.titre);
+    } else {
+      $('#menu').hidden = true;
+      FEUILLES[c].ouvrir();
+      document.title = 'Accompagna — ' + FEUILLES[c].titre;
+    }
+    window.scrollTo(0, 0);
+  }
+  /* Console de publication : elle tourne sur le poste (PowerShell). Le lien
+     accompagna-console:// la lance ou la rouvre — il s'installe une fois par
+     poste avec Outils\console_da\Installer_lien_console.cmd. */
+  function ouvrirConsole(vue) {
+    $('#menu-note').innerHTML = '<div class="message ok" style="margin-top:1.2rem">' +
+      '<b>La console s\'ouvre sur ce poste.</b> Si le navigateur le demande, autorisez l\'ouverture.<br>' +
+      'Rien ne s\'ouvre ? Si la console est déjà lancée : ' +
+      '<a href="http://localhost:8766/?vue=' + vue + '" target="_blank" rel="noopener">ouvrir la console</a>. ' +
+      'Sinon, installez le lien une fois sur ce poste avec <b>Outils\\console_da\\Installer_lien_console.cmd</b>, ' +
+      'ou lancez <b>4. Console DA.cmd</b>.</div>';
+    location.href = 'accompagna-console://' + vue;
+  }
+  function demarrerMenus() {
+    $('#menu-tuiles').addEventListener('click', function (e) {
+      var b = e.target.closest('[data-aller],[data-console]');
+      if (!b) return;
+      if (b.dataset.console) ouvrirConsole(b.dataset.console);
+      else location.hash = '#/' + b.dataset.aller;
+    });
+    window.addEventListener('hashchange', afficher);
+    afficher();
   }
 
   /* ------------------------------------------------------------------ *
@@ -1903,8 +2146,10 @@ footer{text-align:center;color:var(--gris-moyen);font-size:.72rem;padding:1.5rem
   var FILTRE_Q = 'a_traiter';
   function compterQuestions() {
     return appeler('lms', 'assistant_compteur', {}).then(function (n) {
-      var p = $('#pastille-questions'); if (!p) return;
-      n = Number(n || 0); p.textContent = n; p.hidden = !n;
+      n = Number(n || 0); NB_QUESTIONS = n;
+      Array.prototype.forEach.call(document.querySelectorAll('#pastille-questions, .pastille-q'), function (p) {
+        p.textContent = n; p.hidden = !n;
+      });
     }).catch(function () {});
   }
   var QUESTIONS_BRANCHEES = false;
