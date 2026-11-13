@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Accompagna — Administration</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%238C1E70'/%3E%3Cpath d='M7 12l3.5 3.5 6.5-7' stroke='%23fff' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' fill='%231E5AA8'/%3E%3Cpath d='M7 12l3.5 3.5 6.5-7' stroke='%23fff' stroke-width='2.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
 :root{
-  --prune:#8C1E70; --prune-fonce:#5E1349; --prune-clair:#F4E6EE; --rose:#C77BAA;
-  --vert:#283C28; --vert-clair:#EAF5EF; --gris:#3C3C3C; --gris-moyen:#8A7A85;
-  --trame:#E8DCE5; --fond:#FAF6F8; --blanc:#FFFFFF;
+  --prune:#1E5AA8; --prune-fonce:#123A6B; --prune-clair:#E6EEF8; --rose:#7BA7D9;
+  --vert:#14263F; --vert-clair:#EAF5EF; --gris:#3C3C3C; --gris-moyen:#74808E;
+  --trame:#D9E2EE; --fond:#F5F8FC; --blanc:#FFFFFF;
   --rouge:#B3261E; --rouge-clair:#FCEDEC; --or-clair:#FCF4DC;
   --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
 }
@@ -20,15 +20,15 @@ body{margin:0;font-family:var(--sans);color:var(--gris);background:var(--fond);l
   align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem}
 .marque{font-weight:700}
 .marque .perf{color:var(--rose);font-weight:500}
-.marque .role{color:#E8C9DF;font-size:.75rem;letter-spacing:.1em;margin-left:.6rem;text-transform:uppercase}
+.marque .role{color:#C9DAEF;font-size:.75rem;letter-spacing:.1em;margin-left:.6rem;text-transform:uppercase}
 .logo{display:inline-flex;align-items:center;gap:.5rem;vertical-align:middle}
 .logo .mot{color:#fff;font-size:1.15rem;font-weight:700;letter-spacing:-.03em;line-height:1}
 .espaces{display:inline-flex;gap:.2rem;margin-left:1rem;vertical-align:middle;flex-wrap:wrap}
-.espaces a{color:#EBD6E4;text-decoration:none;font-size:.8rem;font-weight:600;padding:.28rem .7rem;
+.espaces a{color:#D6E3F2;text-decoration:none;font-size:.8rem;font-weight:600;padding:.28rem .7rem;
   border:1px solid transparent;border-radius:999px}
-.espaces a:hover{border-color:#8C1E70;color:#fff}
+.espaces a:hover{border-color:#1E5AA8;color:#fff}
 .espaces a.actif{background:#fff;color:var(--prune-fonce)}
-.qui{font-size:.85rem;color:#EBD6E4;display:flex;align-items:center;gap:.8rem}
+.qui{font-size:.85rem;color:#D6E3F2;display:flex;align-items:center;gap:.8rem}
 nav{background:#fff;border-bottom:1px solid var(--trame);padding:0 1.2rem;display:flex;gap:.2rem}
 nav button{background:none;border:0;border-bottom:3px solid transparent;padding:.7rem 1rem;
   font-family:inherit;font-size:.92rem;font-weight:600;color:var(--gris-moyen);cursor:pointer}
@@ -57,7 +57,7 @@ td.secret{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.84rem;
   color:var(--prune-fonce);font-weight:700}
 .btn{border:0;border-radius:7px;padding:.55rem 1.1rem;font-family:inherit;font-size:.92rem;
   font-weight:600;cursor:pointer;background:var(--prune);color:#fff}
-.btn:disabled{background:#C9AABE;cursor:default}
+.btn:disabled{background:#AABDD6;cursor:default}
 .btn-secondaire{background:#fff;color:var(--prune);border:1px solid var(--prune)}
 .btn-mini{padding:.25rem .6rem;font-size:.8rem;background:#fff;color:var(--prune);
   border:1px solid var(--trame);border-radius:6px;cursor:pointer;font-family:inherit}
@@ -74,13 +74,13 @@ td.secret{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.84rem;
 .q-carte.repondue{border-left-color:#2F7A4F}
 .q-carte .meta{font-size:.78rem;color:var(--gris-moyen)}
 .q-carte .question{font-weight:600;color:var(--prune-fonce);margin:.35rem 0}
-.q-carte .ia{font-size:.85rem;white-space:pre-wrap;background:#FAF6F8;border-radius:6px;padding:.5rem .7rem;margin:.3rem 0}
+.q-carte .ia{font-size:.85rem;white-space:pre-wrap;background:#F5F8FC;border-radius:6px;padding:.5rem .7rem;margin:.3rem 0}
 .q-carte .rf{font-size:.88rem;white-space:pre-wrap;background:#E9F5EE;border-left:3px solid #2F7A4F;padding:.5rem .7rem;margin:.4rem 0}
 .q-carte textarea{min-height:5rem;font-family:inherit;font-size:.9rem}
 .q-carte .actions{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;margin-top:.5rem}
 .q-carte .actions label{display:flex;gap:.4rem;align-items:center;font-size:.85rem;cursor:pointer;width:auto;text-transform:none;letter-spacing:0;color:var(--gris);font-weight:400;margin:0}
 .q-carte .actions input[type=checkbox]{width:auto}
-.tag{display:inline-block;font-size:.72rem;padding:.05rem .5rem;border-radius:999px;margin-left:.3rem;background:#F4E6EE;color:var(--prune-fonce)}
+.tag{display:inline-block;font-size:.72rem;padding:.05rem .5rem;border-radius:999px;margin-left:.3rem;background:#E6EEF8;color:var(--prune-fonce)}
 .tag.rouge{background:#FBE9EB;color:#B23A48}
 .tag.vert{background:#E9F5EE;color:#2F7A4F}
 .actions{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap;margin-top:.9rem}
@@ -95,7 +95,7 @@ tr.sorti td{color:var(--gris-moyen)}
   border-radius:4px;background:var(--prune-clair);color:var(--prune-fonce);margin-left:.4rem}
 .etat{display:inline-block;font-size:.74rem;font-weight:700;padding:.1rem .5rem;border-radius:4px;
   white-space:nowrap}
-.etat.ok{background:var(--vert-clair);color:var(--vert)}
+.etat.ok{background:var(--vert-clair);color:#2F7A4F}
 .etat.attention{background:var(--or-clair);color:#8a6d1f}
 .etat.alerte{background:var(--rouge-clair);color:var(--rouge)}
 .etat.neutre{background:var(--fond);color:var(--gris-moyen)}
@@ -117,7 +117,7 @@ th.col-note{text-align:center}
 td.note{text-align:center;font-variant-numeric:tabular-nums;font-weight:600}
 td.note.cliquable{cursor:pointer}
 td.note.cliquable:hover{outline:2px solid var(--prune);outline-offset:-2px}
-td.note.bien{background:var(--vert-clair);color:var(--vert)}
+td.note.bien{background:var(--vert-clair);color:#2F7A4F}
 td.note.moyen{background:var(--or-clair);color:#8a6d1f}
 td.note.faible{background:var(--rouge-clair);color:var(--rouge)}
 td.note.vide{color:var(--gris-moyen)}
@@ -153,7 +153,7 @@ footer{text-align:center;color:var(--gris-moyen);font-size:.72rem;padding:1.5rem
       <span class="role" id="role-espace">Back-office</span></span>
     <span class="qui"><span id="qui-nom"></span>
       <button class="btn-mini" id="btn-sortir"
-        style="background:transparent;color:#EBD6E4;border-color:#8C1E70">Se déconnecter</button></span>
+        style="background:transparent;color:#D6E3F2;border-color:#1E5AA8">Se déconnecter</button></span>
   </header>
 
   <nav>
@@ -2117,7 +2117,7 @@ footer{text-align:center;color:var(--gris-moyen);font-size:.72rem;padding:1.5rem
       monUid = sess.user && sess.user.id;
       return verifierPersonnel();
     }).catch(function (e) {
-      document.body.innerHTML = '<div class="connexion" style="max-width:30rem;margin:4rem auto;background:#fff;padding:2rem;border:1px solid #E8DCE5">' +
+      document.body.innerHTML = '<div class="connexion" style="max-width:30rem;margin:4rem auto;background:#fff;padding:2rem;border:1px solid #D9E2EE">' +
         '<h2>Accès impossible</h2><p class="muted">' + echappe(e.message || e) + '</p>' +
         '<p><a href="index.html">Revenir à l\'écran de connexion</a></p></div>';
     });
