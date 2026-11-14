@@ -86,6 +86,8 @@ video::cue{background:rgba(31,42,55,.85);color:#fff;font-size:1.05em;line-height
   color:var(--alerte); font-size:.9rem; margin-bottom:1.15rem;
 }
 .message[hidden]{display:none}
+#fenetre-mdp[hidden],#btn-mon-mdp[hidden]{display:none!important}
+.message.ok{border-left-color:var(--prune);background:var(--prune-clair);color:var(--prune-fonce)}
 
 /* ---------- En-tête applicative ---------- */
 .bandeau{
@@ -385,8 +387,23 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
   </div>
   <header class="bandeau">
     <span class="logo sombre"><span class="mot">Accompagna</span></span>
-    <span class="qui"><span id="qui-nom"></span><button type="button" id="btn-deconnexion">Se déconnecter</button></span>
+    <span class="qui"><span id="qui-nom"></span><button type="button" id="btn-mon-mdp">Mon mot de passe</button><button type="button" id="btn-deconnexion">Se déconnecter</button></span>
   </header>
+  <div id="fenetre-mdp" hidden class="ecran-connexion" style="position:fixed;inset:0;min-height:0;background:rgba(15,23,42,.45);z-index:70">
+    <div class="carte-connexion" role="dialog" aria-modal="true" aria-labelledby="titre-mdp">
+      <h1 id="titre-mdp" style="font-size:1.3rem;margin-bottom:.6rem">Changer mon mot de passe</h1>
+      <p class="aide" style="margin:0 0 1.2rem">Au moins 10 caractères. Si vous l'oubliez, votre gestionnaire de formation pourra vous redonner le mot de passe de départ.</p>
+      <div class="message" id="msg-mdp" hidden role="alert"></div>
+      <div class="champ"><label for="m-actuel">Mot de passe actuel</label>
+        <input type="password" id="m-actuel" autocomplete="current-password"></div>
+      <div class="champ"><label for="m-nouveau">Nouveau mot de passe</label>
+        <input type="password" id="m-nouveau" autocomplete="new-password"></div>
+      <div class="champ"><label for="m-confirme">Nouveau mot de passe, une seconde fois</label>
+        <input type="password" id="m-confirme" autocomplete="new-password"></div>
+      <button class="btn" style="width:100%" type="button" id="btn-mdp-valider">Changer le mot de passe</button>
+      <p style="text-align:center;margin:1rem 0 0"><button type="button" class="btn-lien" id="btn-mdp-fermer">Fermer</button></p>
+    </div>
+  </div>
   <main>
     <div id="vue-seances"></div>
     <div id="vue-seance" hidden></div>
@@ -506,6 +523,48 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
 
   $('#btn-deconnexion').addEventListener('click', function () {
     seDeconnecter();
+  });
+
+  /* Changement de son mot de passe : l'actuel est vérifié d'abord,
+     une session restée ouverte ne suffit pas. */
+  if (APERCU) $('#btn-mon-mdp').hidden = true;
+  function messageMdp(t, ok) {
+    var m = $('#msg-mdp'); m.textContent = t; m.className = 'message' + (ok ? ' ok' : ''); m.hidden = false;
+  }
+  function viderMdp() { ['#m-actuel', '#m-nouveau', '#m-confirme'].forEach(function (c) { $(c).value = ''; }); }
+  $('#btn-mon-mdp').addEventListener('click', function () {
+    viderMdp(); $('#msg-mdp').hidden = true; $('#fenetre-mdp').hidden = false; $('#m-actuel').focus();
+  });
+  $('#btn-mdp-fermer').addEventListener('click', function () { viderMdp(); $('#fenetre-mdp').hidden = true; });
+  $('#fenetre-mdp').addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { viderMdp(); $('#fenetre-mdp').hidden = true; }
+    if (e.key === 'Enter') $('#btn-mdp-valider').click();
+  });
+  $('#btn-mdp-valider').addEventListener('click', function () {
+    var actuel = $('#m-actuel').value, nouveau = $('#m-nouveau').value, confirme = $('#m-confirme').value;
+    if (!actuel || !nouveau) { messageMdp('Les trois champs sont attendus.'); return; }
+    if (nouveau.length < 10) { messageMdp('Le nouveau mot de passe doit faire au moins 10 caractères.'); return; }
+    if (nouveau !== confirme) { messageMdp('Les deux saisies du nouveau mot de passe diffèrent.'); return; }
+    if (nouveau === actuel) { messageMdp("Le nouveau mot de passe doit être différent de l'actuel."); return; }
+    var b = $('#btn-mdp-valider'); b.disabled = true; b.textContent = 'Vérification…';
+    db.auth.getUser().then(function (r) {
+      var u = r.data && r.data.user;
+      if (!u || !u.email) throw new Error('Session expirée : reconnectez-vous.');
+      return db.auth.signInWithPassword({ email: u.email, password: actuel });
+    }).then(function (r) {
+      if (r.error) throw new Error('Mot de passe actuel incorrect.');
+      b.textContent = 'Enregistrement…';
+      return db.auth.updateUser({ password: nouveau });
+    }).then(function (r) {
+      if (r.error) {
+        var m = r.error.message || 'Changement refusé.';
+        if (/weak|short|characters/i.test(m)) m = 'Mot de passe trop simple : allongez-le ou variez les caractères.';
+        throw new Error(m);
+      }
+      viderMdp();
+      messageMdp('Mot de passe changé. Utilisez-le dès votre prochaine connexion.', true);
+    }).catch(function (e) { messageMdp(e.message); })
+      .then(function () { b.disabled = false; b.textContent = 'Changer le mot de passe'; });
   });
 
   /* Fin de session : on revient à l'écran de connexion unique.

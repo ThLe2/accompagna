@@ -65,6 +65,7 @@ td.secret{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.84rem;
 .pastille{display:inline-block;min-width:1.2rem;padding:0 .35rem;margin-left:.3rem;border-radius:999px;background:#B23A48;
   color:#fff;font-size:.72rem;font-weight:700;line-height:1.2rem;text-align:center}
 .pastille[hidden]{display:none}
+#fenetre-mdp[hidden]{display:none!important}
 .sous-onglets-q{display:flex;gap:.4rem;flex-wrap:wrap;margin:0 0 1rem}
 .sous-onglets-q button{background:#fff;border:1px solid var(--trame);border-radius:999px;padding:.4rem 1rem;font-family:inherit;font-size:.85rem;cursor:pointer;color:var(--gris)}
 .sous-onglets-q button:hover{border-color:var(--prune);color:var(--prune-fonce)}
@@ -225,9 +226,29 @@ nav{display:none!important}
       </span>
       <span class="role" id="role-espace">Back-office</span></span>
     <span class="qui"><span id="qui-nom"></span>
+      <button class="btn-mini" id="btn-mon-mdp"
+        style="background:transparent;color:#D6E3F2;border-color:#1E5AA8">Mon mot de passe</button>
       <button class="btn-mini" id="btn-sortir"
         style="background:transparent;color:#D6E3F2;border-color:#1E5AA8">Se déconnecter</button></span>
   </header>
+
+  <div id="fenetre-mdp" hidden style="position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:50;display:flex;align-items:center;justify-content:center;padding:1rem">
+    <div class="carte" role="dialog" aria-modal="true" aria-labelledby="titre-mdp" style="width:100%;max-width:26rem;margin:0">
+      <h2 id="titre-mdp">Changer mon mot de passe</h2>
+      <p class="sub">Au moins 10 caractères. Il remplace aussitôt l'ancien, sur tous vos appareils.</p>
+      <label for="m-actuel">Mot de passe actuel</label>
+      <input id="m-actuel" type="password" autocomplete="current-password">
+      <label for="m-nouveau">Nouveau mot de passe</label>
+      <input id="m-nouveau" type="password" autocomplete="new-password">
+      <label for="m-confirme">Nouveau mot de passe, une seconde fois</label>
+      <input id="m-confirme" type="password" autocomplete="new-password">
+      <div class="actions">
+        <button class="btn" id="btn-mdp-valider">Changer le mot de passe</button>
+        <button class="btn btn-secondaire" id="btn-mdp-fermer">Fermer</button>
+      </div>
+      <div id="msg-mdp"></div>
+    </div>
+  </div>
 
   <nav>
     <button data-onglet="seances" class="actif">Séances</button>
@@ -877,6 +898,13 @@ nav{display:none!important}
                             b.dataset.onglet === 'stagiaires' ||
                             b.dataset.onglet === 'personnel' ||
                             b.dataset.onglet === 'modules')) b.hidden = true;
+    });
+    $('#btn-mon-mdp').addEventListener('click', ouvrirMotDePasse);
+    $('#btn-mdp-fermer').addEventListener('click', fermerMotDePasse);
+    $('#btn-mdp-valider').addEventListener('click', changerMotDePasse);
+    $('#fenetre-mdp').addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') fermerMotDePasse();
+      if (e.key === 'Enter') changerMotDePasse();
     });
     $('#btn-sortir').addEventListener('click', function () {
       sessionStorage.removeItem(CLES.jeton);
@@ -1685,12 +1713,31 @@ nav{display:none!important}
            '<td>' + echappe(s.nom) + ' ' + echappe(s.prenom) + '</td>' +
            '<td>' + echappe(s.email || '—') + '</td>' +
            '<td>' + echappe(s.telephone || '—') + '</td>' +
-           '<td>' + (s.user_id ? '<span class="etat ok">oui</span>'
+           '<td>' + (s.user_id ? '<span class="etat ok">oui</span> <button class="btn-mini" data-remise="' +
+                                 echappe(s.identifiant) + '" title="Redonne le mot de passe calculé">Remettre le mot de passe</button>'
                                : '<span class="etat attention">à créer</span>') + '</td>' +
            '<td>' + (i.sortie_le ? echappe(dateCourte(i.sortie_le)) +
                      (i.motif_sortie ? ' — ' + echappe(i.motif_sortie) : '') : '—') + '</td></tr>';
     });
-    $('#liste-stagiaires').innerHTML = h + '</table>';
+    $('#liste-stagiaires').innerHTML = h + '</table><div id="msg-remise"></div>';
+    Array.prototype.forEach.call(document.querySelectorAll('#liste-stagiaires [data-remise]'), function (bt) {
+      bt.addEventListener('click', function () { remettreMotDePasse(bt.getAttribute('data-remise')); });
+    });
+  }
+
+  /* Un stagiaire qui a changé son mot de passe puis l'a oublié : on lui
+     redonne le mot de passe calculé (nom + identifiant de suivi). */
+  function remettreMotDePasse(ident) {
+    if (!window.confirm('Remettre le mot de passe calculé de ' + ident + ' ?\n\n' +
+                        "Celui qu'il avait choisi ne fonctionnera plus.")) return;
+    appeler('lms', 'reinitialiser_mot_de_passe_stagiaire', { p_identifiant: ident })
+      .then(function (lignes) {
+        var l = (lignes && lignes[0]) || {};
+        alerte('#msg-remise', 'Mot de passe calculé remis pour ' + ident + '.', 'ok');
+        $('#msg-remise').innerHTML += afficherSecret(l.compte, l.mot_de_passe);
+        $('#msg-remise').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      })
+      .catch(function (e) { alerte('#msg-remise', e.message); });
   }
 
   /* L'import écrit sans repasse : la fonction analyse le texte puis
@@ -2753,6 +2800,57 @@ nav{display:none!important}
            '<tr><td>' + echappe(compte) + '</td><td class="secret">' + echappe(mdp) + '</td></tr></table>' +
            '<p class="muted">Notez-le maintenant : il ne sera plus affiché. ' +
            'Adresse de connexion : thle2.github.io/espace-formation</p>';
+  }
+
+  /* Changement de son propre mot de passe : on vérifie d'abord l'actuel
+     (une session laissée ouverte ne suffit pas), puis on écrit le nouveau
+     sur le compte connecté. Rien n'est conservé dans la page. */
+  function ouvrirMotDePasse() {
+    ['#m-actuel', '#m-nouveau', '#m-confirme'].forEach(function (c) { $(c).value = ''; });
+    $('#msg-mdp').innerHTML = '';
+    $('#fenetre-mdp').hidden = false;
+    $('#m-actuel').focus();
+  }
+  function fermerMotDePasse() {
+    ['#m-actuel', '#m-nouveau', '#m-confirme'].forEach(function (c) { $(c).value = ''; });
+    $('#fenetre-mdp').hidden = true;
+  }
+  function changerMotDePasse() {
+    var actuel = $('#m-actuel').value, nouveau = $('#m-nouveau').value, confirme = $('#m-confirme').value;
+    if (!actuel || !nouveau) { alerte('#msg-mdp', 'Les trois champs sont attendus.'); return; }
+    if (nouveau.length < 10) { alerte('#msg-mdp', 'Le nouveau mot de passe doit faire au moins 10 caractères.'); return; }
+    if (nouveau !== confirme) { alerte('#msg-mdp', 'Les deux saisies du nouveau mot de passe diffèrent.'); return; }
+    if (nouveau === actuel) { alerte('#msg-mdp', "Le nouveau mot de passe doit être différent de l'actuel."); return; }
+    var b = $('#btn-mdp-valider'); b.disabled = true; b.textContent = 'Vérification…';
+    fetch(URL_PROJET + '/auth/v1/user', { headers: entetes(null, false) })
+      .then(function (r) { return r.json(); })
+      .then(function (u) {
+        if (!u || !u.email) throw new Error('Session expirée : reconnectez-vous.');
+        return fetch(URL_PROJET + '/auth/v1/token?grant_type=password', {
+          method: 'POST', headers: { apikey: CLE, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: u.email, password: actuel })
+        }).then(function (r) { return r.json(); });
+      })
+      .then(function (d) {
+        if (!d.access_token) throw new Error('Mot de passe actuel incorrect.');
+        jeton = d.access_token;
+        sessionStorage.setItem(CLES.jeton, jeton);
+        b.textContent = 'Enregistrement…';
+        return fetch(URL_PROJET + '/auth/v1/user', {
+          method: 'PUT', headers: entetes(null, false), body: JSON.stringify({ password: nouveau })
+        }).then(function (r) { return r.json().then(function (x) { return { ok: r.ok, d: x }; }); });
+      })
+      .then(function (res) {
+        if (!res.ok) {
+          var m = (res.d && (res.d.msg || res.d.error_description || res.d.message)) || 'Changement refusé.';
+          if (/weak|short|characters/i.test(m)) m = 'Mot de passe trop simple : allongez-le ou variez les caractères.';
+          throw new Error(m);
+        }
+        ['#m-actuel', '#m-nouveau', '#m-confirme'].forEach(function (c) { $(c).value = ''; });
+        alerte('#msg-mdp', 'Mot de passe changé. Utilisez-le dès votre prochaine connexion.', 'ok');
+      })
+      .catch(function (e) { alerte('#msg-mdp', e.message); })
+      .then(function () { b.disabled = false; b.textContent = 'Changer le mot de passe'; });
   }
 
   function nouveauMotDePasse(email) {
