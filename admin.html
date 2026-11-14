@@ -1013,6 +1013,7 @@ nav{display:none!important}
     questions: '<path d="M4 5h16v11H9l-5 4z"/><path d="M10 9.2a2 2 0 1 1 2.6 1.9c-.4.2-.6.5-.6.9M12 13.5v.01"/>',
     scenario: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M12 12v6M9 15h6"/>',
     publication: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>',
+    maj: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/><path d="M12 8v4l2.5 1.5"/>',
     tableau: '<path d="M4 20a8 8 0 1 1 16 0"/><path d="M12 20l4-6"/><path d="M7 13.5l1 .8M12 9v1.2M17 13.5l-1 .8"/>',
     assistant: '<rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 12v1M15 12v1M9.5 16h5"/>'
   };
@@ -1077,8 +1078,9 @@ nav{display:none!important}
         { ico: 'questions', t: "Questions à l'assistant", s: 'Questions transmises par les stagiaires', feuille: 'questions', q: true }
       ] },
       'm-modules': { titre: 'Gestion des modules', parent: 'm-admin', tuiles: [
-        { ico: 'scenario', t: 'Nouveau DA depuis un scénario', s: 'Ouvre la console de ce poste', console: 'scenario' },
-        { ico: 'publication', t: 'Console de publication des DA', s: 'Ouvre la console de ce poste', console: 'publication' },
+        { ico: 'scenario', t: 'Nouveau DA', s: 'Un scénario devient un DA, sur ce poste', console: 'nouveau' },
+        { ico: 'publication', t: 'Publication des DA', s: 'Pages en ligne et chargement en base', console: 'publication' },
+        { ico: 'maj', t: 'Mises à jour des DA', s: 'Corrections de DA déjà publiés', console: 'maj' },
         { ico: 'assistant', t: 'Assistant du cours', s: "Modules ouverts aux questions des stagiaires", feuille: 'assistant' }
       ] },
       'm-mes': { titre: 'Mes séances', parent: estGestionnaire ? 'accueil' : null, tuiles: [
@@ -1171,17 +1173,17 @@ nav{display:none!important}
     }
     window.scrollTo(0, 0);
   }
-  /* Console de publication : elle tourne sur le poste (PowerShell). Le lien
-     accompagna-console:// la lance ou la rouvre — il s'installe une fois par
-     poste avec Outils\console_da\Installer_lien_console.cmd. */
+  var CONSOLE = { lien: 'accompagna-console', port: 8766 };
+  /* Console de publication : elle tourne sur ce poste. Le lien <CONSOLE.lien>://
+     la lance ou la rouvre ; il est posé par l'installation de la console. */
   function ouvrirConsole(vue) {
     $('#menu-note').innerHTML = '<div class="message ok" style="margin-top:1.2rem">' +
-      '<b>La console s\'ouvre sur ce poste.</b> Si le navigateur le demande, autorisez l\'ouverture.<br>' +
+      '<b>La console s\'ouvre sur ce poste.</b> À la première ouverture, le navigateur demande l\'autorisation : ' +
+      'cochez « Toujours autoriser », puis « Ouvrir ».<br>' +
       'Rien ne s\'ouvre ? Si la console est déjà lancée : ' +
-      '<a href="http://localhost:8766/?vue=' + vue + '" target="_blank" rel="noopener">ouvrir la console</a>. ' +
-      'Sinon, installez le lien une fois sur ce poste avec <b>Outils\\console_da\\Installer_lien_console.cmd</b>, ' +
-      'ou lancez <b>4. Console DA.cmd</b>.</div>';
-    location.href = 'accompagna-console://' + vue;
+      '<a href="http://localhost:' + CONSOLE.port + '/?vue=' + vue + '" target="_blank" rel="noopener">ouvrir la console</a>. ' +
+      'Sinon, lancez <b>Console DA.cmd</b> dans le dossier des DA de ce poste.</div>';
+    location.href = CONSOLE.lien + '://' + vue;
   }
   function demarrerMenus() {
     $('#menu-tuiles').addEventListener('click', function (e) {
