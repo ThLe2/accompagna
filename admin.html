@@ -199,6 +199,29 @@ nav{display:none!important}
 #tdb-tableau .mini{display:inline-block;width:5.5rem;height:.5rem;background:var(--prune-clair);border-radius:3px;overflow:hidden;vertical-align:middle;margin-right:.4rem}
 #tdb-tableau .mini span{display:block;height:100%;background:var(--prune)}
 .tdb-scroll{overflow-x:auto}
+
+/* Atelier de questions (brique 1, 15/11/2026) */
+.at-table{width:100%;border-collapse:collapse;font-size:.88rem}
+.at-table th,.at-table td{border-bottom:1px solid var(--trame);padding:.45rem .5rem;text-align:left;vertical-align:top}
+.at-table tr.clic{cursor:pointer}.at-table tr.clic:hover td{background:#F6F8FC}
+.at-statut{display:inline-block;padding:.1rem .55rem;border-radius:999px;font-size:.78rem;font-weight:600;background:#EEF1F6;white-space:nowrap}
+.at-statut.brouillon{background:#EEF1F6}.at-statut.a_valider{background:#FFF4D6}.at-statut.a_signer{background:#FFE9D2}
+.at-statut.signee{background:#E3F0FF}.at-statut.publiee{background:#E3F4E8}.at-statut.a_reprendre{background:#FDE7E7}
+.at-ctl.ok{color:#1B7F45;font-weight:600}.at-ctl.ko{color:#B42318}
+.at-grille{display:grid;grid-template-columns:1fr 1fr;gap:.8rem 1rem}
+.at-grille .large{grid-column:1/-1}
+@media (max-width:760px){.at-grille{grid-template-columns:1fr}}
+.at-grille label{display:block;font-weight:600;font-size:.85rem;margin-bottom:.2rem}
+.at-grille textarea{min-height:5.5rem}
+.at-aide{font-size:.8rem;color:var(--gris-moyen,#6B7280);margin:.15rem 0 0}
+.at-boutons{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0 .4rem}
+.at-boutons select{width:auto;max-width:16rem}
+.at-valeurs{max-height:15rem;overflow:auto;border:1px solid var(--trame);border-radius:6px;margin-top:.4rem}
+.at-valeurs button{display:flex;justify-content:space-between;gap:.6rem;width:100%;text-align:left;border:0;border-bottom:1px solid var(--trame);background:#fff;padding:.35rem .6rem;font:inherit;font-size:.82rem;cursor:pointer}
+.at-valeurs button:hover{background:#F6F8FC}
+.at-apercu{background:#F8FAFD;border:1px solid var(--trame);border-radius:8px;padding:.8rem 1rem;font-size:.9rem}
+.at-hist{font-size:.82rem;margin:0;padding-left:1.1rem}
+.at-retour{background:none;border:0;color:var(--prune,#1E5AA8);cursor:pointer;font:inherit;padding:0;margin-bottom:.6rem;text-decoration:underline}
 </style>
 </head>
 <body>
@@ -635,6 +658,12 @@ nav{display:none!important}
         <div id="liste-questions"></div>
       </div>
     </section>
+    <section id="vue-atelier" hidden>
+      <div class="carte" id="at-carte">
+        <div id="at-contenu"></div>
+        <div id="msg-atelier"></div>
+      </div>
+    </section>
   </main>
 
 </div>
@@ -1015,7 +1044,10 @@ nav{display:none!important}
     publication: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/>',
     maj: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/><path d="M12 8v4l2.5 1.5"/>',
     tableau: '<path d="M4 20a8 8 0 1 1 16 0"/><path d="M12 20l4-6"/><path d="M7 13.5l1 .8M12 9v1.2M17 13.5l-1 .8"/>',
-    assistant: '<rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 12v1M15 12v1M9.5 16h5"/>'
+    assistant: '<rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 12v1M15 12v1M9.5 16h5"/>',
+    atelier: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
+    validations: '<path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/>',
+    roles: '<circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c.6-3.4 2.9-5.5 5.5-5.5s4.9 2.1 5.5 5.5M14 15.2c2.6-.6 5.3 1 6 4.8"/>'
   };
   function icone(n) {
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
@@ -1042,6 +1074,9 @@ nav{display:none!important}
     resultats:   { titre: 'Résultats', parent: 'm-seances', ouvrir: function () { ouvrirOnglet('resultats'); } },
     copies:      { titre: 'Copies', parent: 'm-seances', ouvrir: function () { ouvrirOnglet('copies'); } },
     questions:   { titre: "Questions à l'assistant", parent: 'm-seances', ouvrir: function () { ouvrirOnglet('questions'); } },
+    atelier:     { titre: 'Atelier de questions', parent: 'm-modules', ouvrir: function () { ouvrirAtelier('atelier'); } },
+    validations: { titre: 'Mes validations', parent: 'm-modules', ouvrir: function () { ouvrirAtelier('validations'); } },
+    roles:       { titre: 'Rôles de production', parent: 'm-groupes', ouvrir: function () { ouvrirAtelier('roles'); } },
     assistant:   { titre: 'Assistant du cours', parent: 'm-modules', gestion: true,
                    ouvrir: function () { ouvrirOnglet('modules'); } }
   };
@@ -1065,7 +1100,8 @@ nav{display:none!important}
         { ico: 'creer', t: 'Création des groupes', s: 'Créer un groupe et voir les groupes existants', feuille: 'groupes' },
         { ico: 'liste', t: 'Création liste stagiaires', s: 'Importer une liste ou saisir un stagiaire', feuille: 'liste' },
         { ico: 'comptes', t: 'Comptes, entrées et sorties', s: 'Comptes de connexion, entrée tardive, sortie anticipée', feuille: 'comptes' },
-        { ico: 'personnel', t: 'Personnel', s: 'Formateurs, gestionnaires et administrateurs', feuille: 'personnel' }
+        { ico: 'personnel', t: 'Personnel', s: 'Formateurs, gestionnaires et administrateurs', feuille: 'personnel' },
+        { ico: 'roles', t: 'Rôles de production', s: 'Auteurs, service pédagogique, direction', feuille: 'roles' }
       ] },
       'm-seances': { titre: 'Gestion des séances', parent: 'm-admin', tuiles: [
         { ico: 'programmer', t: 'Programmer une séance', s: 'Un module, un groupe, une date', feuille: 'programmer' },
@@ -1081,6 +1117,8 @@ nav{display:none!important}
         { ico: 'scenario', t: 'Nouveau DA', s: 'Un scénario devient un DA, sur ce poste', console: 'nouveau' },
         { ico: 'publication', t: 'Publication des DA', s: 'Pages en ligne et chargement en base', console: 'publication' },
         { ico: 'maj', t: 'Mises à jour des DA', s: 'Corrections de DA déjà publiés', console: 'maj' },
+        { ico: 'atelier', t: 'Atelier de questions', s: 'Rédiger, valider, signer et publier les questions', feuille: 'atelier' },
+        { ico: 'validations', t: 'Mes validations', s: 'Questions qui attendent votre décision', feuille: 'validations' },
         { ico: 'assistant', t: 'Assistant du cours', s: "Modules ouverts aux questions des stagiaires", feuille: 'assistant' }
       ] },
       'm-mes': { titre: 'Mes séances', parent: estGestionnaire ? 'accueil' : null, tuiles: [
@@ -1130,7 +1168,7 @@ nav{display:none!important}
     $('#fil').hidden = (c === racine() && !(modeFormateur() && estGestionnaire));
   }
   function cacherVues() {
-    ['seances', 'groupes', 'stagiaires', 'resultats', 'copies', 'personnel', 'modules', 'questions', 'tableau']
+    ['seances', 'groupes', 'stagiaires', 'resultats', 'copies', 'personnel', 'modules', 'questions', 'tableau', 'atelier']
       .forEach(function (n) { $('#vue-' + n).hidden = true; });
   }
   function montrerBlocs(vue) {
@@ -1199,6 +1237,391 @@ nav{display:none!important}
   /* ------------------------------------------------------------------ *
    * Références
    * ------------------------------------------------------------------ */
+
+  /* ------------------------------------------------------------------ *
+   * Atelier de questions — brique 1 (spécification du 15/11/2026)
+   * Rédaction, validation pédagogique, signature de la direction,
+   * publication dans le DA. Aucune valeur en dur : renvois [[cle]] aux
+   * valeurs datées. Tout passe par les fonctions lms.atelier_*.
+   * ------------------------------------------------------------------ */
+  var AT = { mode: 'atelier', roles: [], das: null, daId: null, etape: null, valeurs: null, champ: null, retour: null };
+  var AT_STATUTS = { brouillon: 'Brouillon', a_valider: 'À valider (pédagogique)', a_signer: 'À signer (direction)',
+                     signee: 'Signée — à publier', publiee: 'Publiée', a_reprendre: 'À reprendre' };
+  var AT_TYPES = { unique: 'Réponse unique', multiple: 'Réponses multiples', numerique: 'Calcul', ouverte: 'Rédaction',
+                   appariement: 'Appariement', ordre: 'Remise en ordre', trous: 'Texte à trous' };
+  function atA(r) { return AT.roles.indexOf(r) >= 0; }
+  function atStatut(s) { return '<span class="at-statut ' + s + '">' + echappe(AT_STATUTS[s] || s) + '</span>'; }
+  function atCtl(c) { return c === 'OK' ? '<span class="at-ctl ok">OK</span>' : '<span class="at-ctl ko">' + echappe(c || '') + '</span>'; }
+  function atMsg(t, genre) { if (t) alerte('#msg-atelier', t, genre); else $('#msg-atelier').innerHTML = ''; }
+  function atAppel(fn, corps) { return appeler('lms', 'atelier_' + fn, corps || {}); }
+  function atLignes(t) { return String(t || '').split(/\r?\n/).map(function (x) { return x.trim(); }).filter(Boolean); }
+  function atMelanger(n, eviter) {
+    var p, essais = 0;
+    do { p = []; for (var i = 0; i < n; i++) p.push(i);
+         for (var k = n - 1; k > 0; k--) { var m = Math.floor(Math.random() * (k + 1)), t = p[k]; p[k] = p[m]; p[m] = t; }
+         essais++; } while (eviter(p) && essais < 50);
+    return p;
+  }
+
+  function ouvrirAtelier(mode) {
+    cacherVues();
+    $('#vue-atelier').hidden = false;
+    AT.mode = mode; atMsg('');
+    $('#at-contenu').innerHTML = '<div class="chargement">Chargement…</div>';
+    atAppel('mes_roles').then(function (r) {
+      AT.roles = r || [];
+      if (mode === 'roles') return atRolesVue();
+      if (mode === 'validations') return atValidations();
+      return atAccueil();
+    }).catch(function (e) { $('#at-contenu').innerHTML = ''; atMsg(e.message); });
+  }
+  function atBandeauRoles() {
+    var lib = { auteur: 'auteur', pedagogique: 'service pédagogique', direction: 'direction', gestionnaire: 'gestionnaire' };
+    return '<p class="muted" style="font-size:.85rem">Vos rôles : ' +
+      (AT.roles.length ? AT.roles.map(function (r) { return lib[r] || r; }).join(', ') :
+       'aucun rôle de production — demandez-le à un gestionnaire (Gestion des groupes › Rôles de production).') + '</p>';
+  }
+
+  /* --- Choix du module et de l'étape --- */
+  function atAccueil() {
+    var p = AT.das ? Promise.resolve(AT.das) : lire('contenu', 'das?select=id,code,libelle&actif=eq.true&order=libelle');
+    p.then(function (das) {
+      AT.das = das || [];
+      $('#at-contenu').innerHTML = '<h2>Atelier de questions</h2>' +
+        '<p class="sub">Rédigez les questions d’un module, faites-les valider par le service pédagogique puis signer par la direction, ' +
+        'et publiez-les dans le DA. Aucune valeur en dur : un délai, un taux ou un montant s’écrit comme un renvoi à la valeur datée, ' +
+        'par exemple <code>[[smic_mensuel_brut]]</code>.</p>' + atBandeauRoles() +
+        '<div style="max-width:460px;margin:.6rem 0 1rem"><label for="at-da">Module</label><select id="at-da"><option value="">Choisir un module…</option>' +
+        AT.das.map(function (d) { return '<option value="' + d.id + '"' + (d.id === AT.daId ? ' selected' : '') + '>' + echappe(d.libelle) + ' (' + echappe(d.code) + ')</option>'; }).join('') +
+        '</select></div><div id="at-etapes"></div>';
+      $('#at-da').addEventListener('change', function () { AT.daId = +this.value || null; atEtapes(); });
+      if (AT.daId) atEtapes();
+    }).catch(function (e) { atMsg(e.message); });
+  }
+  function atEtapes() {
+    var z = $('#at-etapes');
+    if (!AT.daId) { z.innerHTML = ''; return; }
+    z.innerHTML = '<div class="chargement">Chargement…</div>';
+    atAppel('etat_da', { p_da_id: AT.daId }).then(function (r) {
+      if (!r || !r.length) { z.innerHTML = '<p class="muted">Ce module n’a pas d’étape à questions.</p>'; return; }
+      z.innerHTML = '<table class="at-table"><thead><tr><th>Étape</th><th>En ligne</th><th>Brouillons</th><th>À valider</th><th>À signer</th><th>Signées</th><th>À reprendre</th></tr></thead><tbody>' +
+        r.map(function (e) {
+          return '<tr class="clic" data-etape="' + e.etape_id + '"><td><b>' + echappe(e.titre) + '</b><br><span class="muted">' + echappe(e.etape_ref) + '</span></td>' +
+            '<td>' + e.publiees_en_base + '</td><td>' + e.brouillon + '</td><td>' + e.a_valider + '</td><td>' + e.a_signer + '</td><td>' + e.signee + '</td><td>' + e.a_reprendre + '</td></tr>';
+        }).join('') + '</tbody></table>';
+      Array.prototype.forEach.call(z.querySelectorAll('tr[data-etape]'), function (tr) {
+        tr.addEventListener('click', function () {
+          var e = r.filter(function (x) { return String(x.etape_id) === tr.dataset.etape; })[0];
+          AT.etape = e; atEtape();
+        });
+      });
+    }).catch(function (e) { z.innerHTML = ''; atMsg(e.message); });
+  }
+
+  /* --- Une étape : ses questions --- */
+  function atEtape(garderMessage) {
+    var e = AT.etape; if (garderMessage !== true) atMsg('');
+    $('#at-contenu').innerHTML = '<button class="at-retour" id="at-retour">← Étapes du module</button>' +
+      '<h2>' + echappe(e.titre) + '</h2><p class="muted">' + echappe(e.etape_ref) + '</p>' + atBandeauRoles() +
+      '<div class="at-boutons" id="at-actions-etape"></div><div id="at-liste"><div class="chargement">Chargement…</div></div>';
+    $('#at-retour').addEventListener('click', atAccueil);
+    atAppel('liste', { p_etape_id: e.etape_id }).then(function (qs) {
+      qs = qs || [];
+      var signees = qs.filter(function (q) { return q.statut === 'signee'; }).length;
+      var b = [];
+      if (atA('auteur') || atA('pedagogique')) {
+        b.push('<select id="at-nouveau-type">' + Object.keys(AT_TYPES).map(function (t) { return '<option value="' + t + '">' + AT_TYPES[t] + '</option>'; }).join('') + '</select>' +
+               '<button class="btn" id="at-nouvelle">Nouvelle question</button>');
+        if (e.publiees_en_base > qs.filter(function (q) { return q.origine === 'reprise' || q.statut === 'publiee'; }).length)
+          b.push('<button class="btn btn-secondaire" id="at-reprendre">Reprendre les questions déjà en ligne</button>');
+      }
+      if (signees && (atA('direction') || atA('gestionnaire')))
+        b.push('<button class="btn" id="at-publier">Publier dans le DA (' + signees + ' signée' + (signees > 1 ? 's' : '') + ')</button>');
+      $('#at-actions-etape').innerHTML = b.join('');
+      if ($('#at-nouvelle')) $('#at-nouvelle').addEventListener('click', function () { atFiche(null, $('#at-nouveau-type').value); });
+      if ($('#at-reprendre')) $('#at-reprendre').addEventListener('click', function () {
+        this.disabled = true;
+        atAppel('reprendre_publiees', { p_etape_id: e.etape_id }).then(function (n) {
+          atMsg(n + ' question(s) reprise(s) en brouillon : vérifiez-les, liez leurs valeurs, puis faites-les valider.', 'ok'); atEtapeRecharger();
+        }).catch(function (x) { atMsg(x.message); });
+      });
+      if ($('#at-publier')) $('#at-publier').addEventListener('click', function () {
+        if (!confirm('Publier ' + signees + ' question(s) signée(s) dans le DA ? Les stagiaires les verront dès leur prochaine séance.')) return;
+        this.disabled = true;
+        atAppel('publier', { p_etape_id: e.etape_id }).then(function (n) {
+          atMsg(n + ' question(s) publiée(s) dans le DA.', 'ok'); atEtapeRecharger();
+        }).catch(function (x) { atMsg(x.message); atEtapeRecharger(); });
+      });
+      $('#at-liste').innerHTML = qs.length ? '<table class="at-table"><thead><tr><th>N°</th><th>Question</th><th>Type</th><th>Statut</th><th>Contrôle</th></tr></thead><tbody>' +
+        qs.map(function (q) {
+          return '<tr class="clic" data-id="' + q.id + '"><td>' + q.ordre + '</td><td>' + echappe(String(q.enonce || '').slice(0, 140)) +
+            '<br><span class="muted">' + echappe(q.ref) + (q.origine === 'outil' ? ' · proposée par l’outil' : q.origine === 'reprise' ? ' · reprise du DA' : '') + '</span></td>' +
+            '<td>' + echappe(AT_TYPES[q.type] || q.type) + '</td><td>' + atStatut(q.statut) + '</td><td>' + atCtl(q.controle) + '</td></tr>';
+        }).join('') + '</tbody></table>' : '<p class="muted">Aucune question dans l’atelier pour cette étape.</p>';
+      Array.prototype.forEach.call($('#at-liste').querySelectorAll('tr[data-id]'), function (tr) {
+        tr.addEventListener('click', function () { AT.retour = atEtape; atFiche(+tr.dataset.id); });
+      });
+    }).catch(function (x) { atMsg(x.message); });
+  }
+  function atEtapeRecharger() {
+    atAppel('etat_da', { p_da_id: AT.daId }).then(function (r) {
+      AT.etape = (r || []).filter(function (x) { return x.etape_id === AT.etape.etape_id; })[0] || AT.etape; atEtape(true);
+    });
+  }
+
+  /* --- Fiche question : saisie par type, contrôle, aperçu, historique, décisions --- */
+  function atVersFormulaire(q) {
+    var v = { props: '', bonnes: '', ordre: '', paires: '', intrus: '', reponses: '', choix: '', elements: '', valeur: '' };
+    var pr = q.propositions || [], at = q.attendu || {};
+    var tx = function (o) { return (o && typeof o === 'object') ? (o.texte || '') : String(o == null ? '' : o); };
+    if (q.type === 'unique' || q.type === 'multiple') {
+      v.props = (Array.isArray(pr) ? pr : []).map(tx).join('\n');
+      var ix = q.type === 'unique' ? [at.index] : (at.index || []);
+      v.bonnes = ix.filter(function (x) { return x !== undefined && x !== null; }).map(function (x) { return +x + 1; }).join(';');
+    } else if (q.type === 'ordre') {
+      v.ordre = (at.ordre || []).map(function (i) { return tx((pr || [])[i]); }).join('\n');
+    } else if (q.type === 'appariement') {
+      var g = pr.gauche || [], d = pr.droite || [], pris = {};
+      v.paires = (at.paires || []).map(function (p) { pris[p[1]] = true; return tx(g[p[0]]) + ' | ' + tx(d[p[1]]); }).join('\n');
+      v.intrus = d.filter(function (x, j) { return !pris[j]; }).map(tx).join('\n');
+    } else if (q.type === 'trous') {
+      v.reponses = (at.trous || []).map(function (a) { return (a || []).join(' | '); }).join('\n');
+      v.choix = ((pr && pr.trous) || []).map(function (a) { return (a || []).join(' | '); }).join('\n');
+    } else if (q.type === 'numerique') {
+      v.valeur = at.valeur != null ? String(at.valeur) : '';
+    } else if (q.type === 'ouverte') {
+      v.elements = (at.elements || []).map(function (e) { return [e.libelle].concat(e.accepte || []).join(' | '); }).join('\n');
+    }
+    return v;
+  }
+  function atDepuisFormulaire(type) {
+    var val = function (id) { var x = $('#' + id); return x ? x.value : ''; };
+    var o = { propositions: [], attendu: {} };
+    if (type === 'unique' || type === 'multiple') {
+      o.propositions = atLignes(val('atf-props'));
+      var nums = val('atf-bonnes').split(/[;,\s]+/).filter(Boolean).map(function (x) { return +x - 1; });
+      o.attendu = type === 'unique' ? (nums.length ? { index: nums[0] } : {}) : { index: nums };
+    } else if (type === 'ordre') {
+      var l = atLignes(val('atf-ordre'));
+      var perm = atMelanger(l.length, function (p) { return l.length > 1 && p.every(function (x, i) { return x === i; }); });
+      o.propositions = perm.map(function (i) { return l[i]; });
+      o.attendu = { ordre: l.map(function (x, k) { return perm.indexOf(k); }) };
+    } else if (type === 'appariement') {
+      var paires = atLignes(val('atf-paires')).map(function (x) { var i = x.indexOf('|'); return [x.slice(0, i).trim(), x.slice(i + 1).trim()]; })
+                     .filter(function (p) { return p[0] && p[1]; });
+      var droite = paires.map(function (p) { return p[1]; }).concat(atLignes(val('atf-intrus')));
+      var permD = atMelanger(droite.length, function (p) { return paires.length > 1 && paires.every(function (x, i) { return p.indexOf(i) === i; }); });
+      var dMel = permD.map(function (i) { return droite[i]; });
+      o.propositions = { gauche: paires.map(function (p) { return p[0]; }), droite: dMel };
+      o.attendu = { paires: paires.map(function (p, i) { return [i, permD.indexOf(i)]; }) };
+    } else if (type === 'trous') {
+      o.attendu = { trous: atLignes(val('atf-reponses')).map(function (x) { return x.split('|').map(function (y) { return y.trim(); }).filter(Boolean); }) };
+      var ch = atLignes(val('atf-choix'));
+      o.propositions = ch.length ? { trous: ch.map(function (x) { return x.split('|').map(function (y) { return y.trim(); }).filter(Boolean); }) } : [];
+    } else if (type === 'numerique') {
+      var vv = val('atf-valeur').replace(',', '.').trim();
+      o.attendu = vv !== '' ? { valeur: +vv } : {};
+    } else if (type === 'ouverte') {
+      var els = atLignes(val('atf-elements')).map(function (x) {
+        var p = x.split('|').map(function (y) { return y.trim(); }).filter(Boolean);
+        return { libelle: p[0], accepte: p.length > 1 ? p.slice(1) : [p[0]] };
+      });
+      o.attendu = els.length ? { elements: els } : {};
+    }
+    return o;
+  }
+  function atChamp(id, lib, contenu, aide, large) {
+    return '<div class="' + (large ? 'large' : '') + '"><label for="' + id + '">' + lib + '</label>' + contenu +
+      (aide ? '<p class="at-aide">' + aide + '</p>' : '') + '</div>';
+  }
+  function atTexte(id, v) { return '<textarea id="' + id + '" class="at-saisie">' + echappe(v || '') + '</textarea>'; }
+  function atLigne(id, v, type) { return '<input id="' + id + '" class="at-saisie" type="' + (type || 'text') + '" value="' + echappe(v == null ? '' : String(v)) + '">'; }
+
+  function atFiche(id, typeNouveau) {
+    atMsg('');
+    var p = id ? atAppel('lire', { p_id: id }) : Promise.resolve({ type: typeNouveau, statut: 'brouillon', points: 1, partiel: true,
+              propositions: [], attendu: {}, nombres_declares: [], etape_id: AT.etape.etape_id, historique: [], controle: '', apercu: {} });
+    p.then(function (q) {
+      var v = atVersFormulaire(q), t = q.type, peutEcrire = atA('auteur') || atA('pedagogique');
+      var spec = '';
+      if (t === 'unique' || t === 'multiple') {
+        spec = atChamp('atf-props', 'Propositions, une par ligne', atTexte('atf-props', v.props), 'L’ordre affiché au stagiaire est celui-ci.', true) +
+               atChamp('atf-bonnes', t === 'unique' ? 'Numéro de la bonne réponse' : 'Numéros des bonnes réponses', atLigne('atf-bonnes', v.bonnes),
+                       t === 'unique' ? '1 = la première ligne.' : 'Séparés par ; — par exemple 1;3');
+      } else if (t === 'ordre') {
+        spec = atChamp('atf-ordre', 'Éléments dans le BON ordre, un par ligne', atTexte('atf-ordre', v.ordre),
+                       'Saisissez l’ordre juste : l’outil mélange lui-même ce que voit le stagiaire.', true);
+      } else if (t === 'appariement') {
+        spec = atChamp('atf-paires', 'Paires justes : élément | proposition, une par ligne', atTexte('atf-paires', v.paires),
+                       'De 2 à 12 paires. L’outil mélange la colonne de droite. Pour un memory : pas de proposition en trop.', true) +
+               atChamp('atf-intrus', 'Propositions en trop (facultatif), une par ligne', atTexte('atf-intrus', v.intrus), '', true);
+      } else if (t === 'trous') {
+        spec = atChamp('atf-reponses', 'Réponses admises, une ligne par trou', atTexte('atf-reponses', v.reponses),
+                       'Plusieurs réponses admises : séparez-les par | . Accents et majuscules ne comptent pas.') +
+               atChamp('atf-choix', 'Choix proposés (facultatif), une ligne par trou', atTexte('atf-choix', v.choix),
+                       'Séparés par | . Vide : le stagiaire tape sa réponse.');
+      } else if (t === 'numerique') {
+        spec = atChamp('atf-formule', 'Formule de la réponse', atLigne('atf-formule', q.formule || ''),
+                       'Avec les clés des valeurs datées, sans crochets : smic_mensuel_brut*3. C’est la forme à privilégier.') +
+               atChamp('atf-valeur', 'Ou valeur fixe', atLigne('atf-valeur', v.valeur), 'Seulement si elle découle des données de l’énoncé : déclarez-la alors ci-dessous.') +
+               atChamp('atf-tolerance', 'Tolérance', atLigne('atf-tolerance', q.tolerance == null ? '' : q.tolerance), 'Écart admis : 0,01 par défaut.');
+      } else if (t === 'ouverte') {
+        spec = atChamp('atf-elements', 'Éléments attendus, un par ligne : libellé | expression admise | autre expression', atTexte('atf-elements', v.elements),
+                       'Vide : rédaction hors barème, corrigée par un formateur.', true);
+      }
+      var ap = q.apercu || {};
+      $('#at-contenu').innerHTML = '<button class="at-retour" id="at-retour">← ' + (AT.retour === atValidations ? 'Mes validations' : 'Questions de l’étape') + '</button>' +
+        '<h2>' + (id ? 'Question ' + echappe(q.ref) : 'Nouvelle question') + ' · ' + echappe(AT_TYPES[t]) + '</h2>' +
+        '<p>' + atStatut(q.statut) + (q.origine === 'outil' ? ' <span class="muted">proposée par l’outil</span>' : '') +
+        (id ? ' · Contrôle : ' + atCtl(q.controle) : '') + '</p>' +
+        '<div class="at-grille">' +
+          atChamp('atf-enonce', 'Énoncé', atTexte('atf-enonce', q.enonce), t === 'trous' ? 'Écrivez {{1}}, {{2}}… à la place de chaque trou.' : '', true) +
+          spec +
+          atChamp('atf-points', 'Points', atLigne('atf-points', q.points, 'number')) +
+          (t === 'appariement' || t === 'ordre' || t === 'trous'
+            ? atChamp('atf-partiel', 'Points partiels', '<select id="atf-partiel"><option value="true"' + (q.partiel !== false ? ' selected' : '') + '>Oui, au prorata</option><option value="false"' + (q.partiel === false ? ' selected' : '') + '>Non, tout ou rien</option></select>') : '') +
+          atChamp('atf-explication', 'Explication (lue par le stagiaire après sa réponse)', atTexte('atf-explication', q.explication), '', true) +
+          atChamp('atf-source', 'Source', atLigne('atf-source', q.source), 'Texte, article, date : affichée avec l’explication.') +
+          atChamp('atf-theme', 'Thème', atLigne('atf-theme', q.theme)) +
+          atChamp('atf-groupe', 'Groupe (facultatif)', atLigne('atf-groupe', q.groupe)) +
+          atChamp('atf-consigne', 'Consigne du groupe (facultatif)', atLigne('atf-consigne', q.consigne)) +
+          atChamp('atf-nombres', 'Nombres qui ne sont pas des valeurs de source', atLigne('atf-nombres', (q.nombres_declares || []).join('; ')),
+                  'Par exemple « 3 » dans « sur 3 mois ». Visible à la validation. Toute autre valeur doit être un renvoi.') +
+          atChamp('atf-commentaire', 'Commentaire (pour l’historique ou un renvoi à l’auteur)', atLigne('atf-commentaire', ''), '', true) +
+        '</div>' +
+        '<details style="margin-top:.8rem"><summary><b>Insérer une valeur datée</b> — cliquez dans un champ, puis sur une valeur</summary>' +
+          '<input id="at-cherche" placeholder="Chercher : smic, livret, plafond…" style="margin-top:.5rem"><div class="at-valeurs" id="at-valeurs"></div></details>' +
+        '<div class="at-boutons" id="at-decisions"></div>' +
+        (id ? '<h3 style="margin-top:1.2rem">Aperçu à ce jour</h3><div class="at-apercu">' +
+          (ap.erreur ? '<span class="at-ctl ko">' + echappe(ap.erreur) + '</span>' :
+           '<p><b>' + echappe(ap.enonce || '') + '</b></p>' +
+           (ap.valeur != null ? '<p>Réponse attendue aujourd’hui : <b>' + echappe(String(ap.valeur)) + '</b></p>' : '') +
+           (ap.attendu && ap.attendu.trous ? '<p>Réponses admises : ' + ap.attendu.trous.map(function (a) { return echappe(a.join(' / ')); }).join(' · ') + '</p>' : '') +
+           (ap.explication ? '<p class="muted">' + echappe(ap.explication) + '</p>' : '')) + '</div>' +
+          '<h3 style="margin-top:1.2rem">Historique</h3><ul class="at-hist">' +
+          (q.historique || []).map(function (h) {
+            return '<li>' + new Date(h.le).toLocaleString('fr-FR') + ' — <b>' + echappe(h.action) + '</b> par ' + echappe(h.nom || '?') +
+              (h.commentaire ? ' : « ' + echappe(h.commentaire) + ' »' : '') + '</li>';
+          }).join('') + '</ul>' : '');
+      $('#at-retour').addEventListener('click', function () { (AT.retour || atEtape)(); });
+      Array.prototype.forEach.call(document.querySelectorAll('.at-saisie'), function (x) {
+        x.addEventListener('focus', function () { AT.champ = this; });
+        if (!peutEcrire) x.disabled = true;
+      });
+      atValeursDatees();
+
+      var b = [], s = q.statut;
+      if (peutEcrire) b.push('<button class="btn" data-act="enregistrer">Enregistrer</button>');
+      if (id && peutEcrire && (s === 'brouillon' || s === 'a_reprendre')) b.push('<button class="btn" data-act="transmettre">Transmettre pour validation</button>');
+      if (id && atA('pedagogique') && s === 'a_valider') b.push('<button class="btn" data-act="valider">Valider (pédagogique)</button>');
+      if (id && atA('direction') && s === 'a_signer') b.push('<button class="btn" data-act="signer">Signer (direction)</button>');
+      if (id && (atA('pedagogique') || atA('direction')) && (s === 'a_valider' || s === 'a_signer' || s === 'signee'))
+        b.push('<button class="btn btn-secondaire" data-act="reprendre">Renvoyer à l’auteur</button>');
+      if (id && peutEcrire && !q.question_id && (s === 'brouillon' || s === 'a_reprendre')) b.push('<button class="btn btn-secondaire" data-act="supprimer">Supprimer</button>');
+      $('#at-decisions').innerHTML = b.join('');
+      $('#at-decisions').addEventListener('click', function (ev) {
+        var bt = ev.target.closest('[data-act]'); if (!bt) return;
+        var act = bt.dataset.act, com = $('#atf-commentaire').value.trim();
+        if (act === 'enregistrer') return atEnregistrer(q, t);
+        if (act === 'supprimer') {
+          if (!confirm('Supprimer définitivement ce brouillon ?')) return;
+          return atAppel('supprimer', { p_id: id }).then(function () { (AT.retour || atEtape)(); }).catch(function (x) { atMsg(x.message); });
+        }
+        if (act === 'reprendre' && !com) { atMsg('Indiquez dans « Commentaire » ce que l’auteur doit reprendre.'); $('#atf-commentaire').focus(); return; }
+        bt.disabled = true;
+        atAppel('decider', { p_id: id, p_decision: act, p_commentaire: com || null })
+          .then(function () { atFiche(id); atMsg('Décision enregistrée.', 'ok'); })
+          .catch(function (x) { bt.disabled = false; atMsg(x.message); });
+      });
+    }).catch(function (e) { atMsg(e.message); });
+  }
+  function atEnregistrer(q, t) {
+    var val = function (x) { var e = $('#' + x); return e ? e.value : null; };
+    var o = atDepuisFormulaire(t);
+    var corps = {
+      id: q.id || null, etape_id: q.etape_id || AT.etape.etape_id, type: t, ref: q.ref || null,
+      enonce: val('atf-enonce'), propositions: o.propositions, attendu: o.attendu,
+      points: val('atf-points'), explication: val('atf-explication'), source: val('atf-source'),
+      theme: val('atf-theme'), groupe: val('atf-groupe'), consigne: val('atf-consigne'),
+      nombres_declares: String(val('atf-nombres') || '').split(/[;\s]+/).map(function (x) { return x.trim(); }).filter(Boolean),
+      commentaire: val('atf-commentaire')
+    };
+    if ($('#atf-partiel')) corps.partiel = val('atf-partiel') === 'true';
+    if (t === 'numerique') { corps.formule = val('atf-formule'); corps.tolerance = val('atf-tolerance').replace(',', '.'); }
+    atAppel('enregistrer', { p: corps }).then(function (nid) {
+      atFiche(nid); atMsg('Enregistré. La question est en brouillon : vérifiez le contrôle, puis transmettez-la.', 'ok');
+    }).catch(function (x) { atMsg(x.message); });
+  }
+  function atValeursDatees() {
+    var z = $('#at-valeurs'); if (!z) return;
+    var p = AT.valeurs ? Promise.resolve(AT.valeurs) : atAppel('valeurs_datees');
+    p.then(function (r) {
+      AT.valeurs = r || [];
+      function dessiner() {
+        var f = ($('#at-cherche').value || '').toLowerCase();
+        z.innerHTML = AT.valeurs.filter(function (x) { return !f || (x.cle + ' ' + (x.libelle || '')).toLowerCase().indexOf(f) >= 0; }).slice(0, 80)
+          .map(function (x) {
+            return '<button type="button" data-cle="' + echappe(x.cle) + '"><span><code>[[' + echappe(x.cle) + ']]</code> ' + echappe(x.libelle || '') +
+              '</span><span class="muted">' + echappe(x.valeur == null ? '' : String(x.valeur)) + ' ' + echappe(x.unite || '') + ' · ' + echappe(x.domaine) + '</span></button>';
+          }).join('') || '<p class="muted" style="padding:.5rem">Aucune valeur.</p>';
+      }
+      dessiner();
+      $('#at-cherche').addEventListener('input', dessiner);
+      z.addEventListener('click', function (ev) {
+        var b = ev.target.closest('[data-cle]'); if (!b) return;
+        var c = AT.champ || $('#atf-enonce'), txt = '[[' + b.dataset.cle + ']]';
+        if (c.id === 'atf-formule') txt = b.dataset.cle;
+        var d = c.selectionStart == null ? c.value.length : c.selectionStart, fn = c.selectionEnd == null ? d : c.selectionEnd;
+        c.value = c.value.slice(0, d) + txt + c.value.slice(fn); c.focus();
+        c.selectionStart = c.selectionEnd = d + txt.length;
+      });
+    }).catch(function (e) { z.innerHTML = '<p class="muted" style="padding:.5rem">' + echappe(e.message) + '</p>'; });
+  }
+
+  /* --- Mes validations --- */
+  function atValidations() {
+    AT.retour = atValidations;
+    $('#at-contenu').innerHTML = '<h2>Mes validations</h2><p class="sub">Les questions qui attendent une décision de votre part, selon vos rôles.</p>' +
+      atBandeauRoles() + '<div id="at-files"><div class="chargement">Chargement…</div></div>';
+    atAppel('mes_validations').then(function (r) {
+      r = r || [];
+      $('#at-files').innerHTML = r.length ? '<table class="at-table"><thead><tr><th>Étape</th><th>Question</th><th>Statut</th></tr></thead><tbody>' +
+        r.map(function (q) {
+          return '<tr class="clic" data-id="' + q.id + '"><td>' + echappe(q.etape_ref) + '</td><td>' + echappe(String(q.enonce || '').slice(0, 140)) +
+            '<br><span class="muted">' + echappe(q.ref) + ' · ' + echappe(AT_TYPES[q.type] || q.type) + '</span></td><td>' + atStatut(q.statut) + '</td></tr>';
+        }).join('') + '</tbody></table>' : '<p class="muted">Rien en attente.</p>';
+      Array.prototype.forEach.call($('#at-files').querySelectorAll('tr[data-id]'), function (tr) {
+        tr.addEventListener('click', function () { AT.retour = atValidations; atFiche(+tr.dataset.id); });
+      });
+    }).catch(function (e) { atMsg(e.message); });
+  }
+
+  /* --- Rôles de production --- */
+  function atRolesVue() {
+    var gest = AT.roles.indexOf('gestionnaire') >= 0;
+    $('#at-contenu').innerHTML = '<h2>Rôles de production</h2><p class="sub">Qui rédige, qui valide pour le service pédagogique, qui signe pour la direction. ' +
+      'Une même personne peut cumuler les rôles. ' + (gest ? '' : 'Seul un gestionnaire peut les modifier.') + '</p><div id="at-personnel"><div class="chargement">Chargement…</div></div>';
+    atAppel('roles_personnel').then(function (r) {
+      var ROLES = [['auteur', 'Auteur'], ['pedagogique', 'Service pédagogique'], ['direction', 'Direction']];
+      $('#at-personnel').innerHTML = '<table class="at-table"><thead><tr><th>Personne</th><th>Profil</th>' +
+        ROLES.map(function (x) { return '<th>' + x[1] + '</th>'; }).join('') + '</tr></thead><tbody>' +
+        (r || []).map(function (p) {
+          return '<tr><td><b>' + echappe(p.nom) + '</b><br><span class="muted">' + echappe(p.email || '') + '</span></td><td>' + echappe(p.role_exploitation) + '</td>' +
+            ROLES.map(function (x) {
+              return '<td><input type="checkbox" aria-label="' + echappe(x[1] + ' — ' + p.nom) + '" data-f="' + p.formateur_id + '" data-r="' + x[0] + '"' +
+                ((p.roles || []).indexOf(x[0]) >= 0 ? ' checked' : '') + (gest ? '' : ' disabled') + '></td>';
+            }).join('') + '</tr>';
+        }).join('') + '</tbody></table>';
+      $('#at-personnel').addEventListener('change', function (ev) {
+        var c = ev.target; if (!c.dataset || !c.dataset.r) return;
+        c.disabled = true;
+        atAppel('poser_role', { p_formateur_id: c.dataset.f, p_role: c.dataset.r, p_actif: c.checked })
+          .then(function () { c.disabled = false; atMsg('Rôle enregistré.', 'ok'); })
+          .catch(function (e) { c.checked = !c.checked; c.disabled = false; atMsg(e.message); });
+      });
+    }).catch(function (e) { atMsg(e.message); });
+  }
+
   function chargerReferences() {
     return Promise.all([
       lire('contenu', 'das?select=code,libelle&order=libelle'),

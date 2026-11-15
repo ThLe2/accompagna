@@ -1614,9 +1614,10 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
     p.innerHTML = tete + '<div class="chargement">Chargement du questionnaire…</div>';
     var ouvertA = new Date().toISOString();
 
-    contenu().from('questions').select('id,ref,ordre,type,enonce,propositions,points,groupe,consigne')
-      .eq('etape_id', e.id).order('ordre', { ascending: true })
+    /* Les valeurs datées ([[cle]]) sont remplacées par le serveur, à la date de la séance. */
+    contenu().rpc('questions_seance', { p_session_id: etat.seance.id, p_etape_id: e.id })
       .then(function (r) {
+        if (r.error) { p.innerHTML = tete; alerte(p, r.error.message); return; }
         var qs = r.data || [];
         if (!qs.length) { p.innerHTML = tete + '<p class="muted">Aucune question dans cette étape.</p>'; return; }
 
@@ -1903,8 +1904,7 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
      trouvées, et le jeu peut se rejouer librement. */
   function panneauMemory(p, tete, e) {
     p.innerHTML = tete + '<div class="chargement">Préparation du jeu…</div>';
-    contenu().from('questions').select('ref,type,enonce,propositions')
-      .eq('etape_id', e.id).order('ordre', { ascending: true })
+    contenu().rpc('questions_seance', { p_session_id: etat.seance.id, p_etape_id: e.id })
       .then(function (r) {
         var q = (r.data || []).filter(function (x) { return x.type === 'appariement'; })[0];
         var g = q && q.propositions && q.propositions.gauche || [], d = q && q.propositions && q.propositions.droite || [];
