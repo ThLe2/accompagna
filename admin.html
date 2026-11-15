@@ -221,6 +221,12 @@ nav{display:none!important}
 .at-valeurs button:hover{background:#F6F8FC}
 .at-apercu{background:#F8FAFD;border:1px solid var(--trame);border-radius:8px;padding:.8rem 1rem;font-size:.9rem}
 .at-hist{font-size:.82rem;margin:0;padding-left:1.1rem}
+.at-formule{grid-column:1/-1;border:1px solid var(--trame);border-radius:8px;padding:.7rem .8rem;background:#FAFBFD}
+.at-formule .ops{display:flex;flex-wrap:wrap;gap:.35rem;margin:.5rem 0}
+.at-formule .ops button{min-width:2.4rem;min-height:2.2rem;border:1px solid var(--trame);border-radius:6px;background:#fff;font:inherit;font-weight:600;cursor:pointer}
+.at-formule .ops button.large{padding:0 .7rem;font-weight:500}
+.at-formule .lecture{margin:.4rem 0 0;font-size:.9rem}
+.at-formule .lecture.ok b{color:#1B7F45}.at-formule .lecture.ko{color:#B42318}
 .at-retour{background:none;border:0;color:var(--prune,#1E5AA8);cursor:pointer;font:inherit;padding:0;margin-bottom:.6rem;text-decoration:underline}
 </style>
 </head>
@@ -1461,8 +1467,17 @@ nav{display:none!important}
                atChamp('atf-choix', 'Choix proposés (facultatif), une ligne par trou', atTexte('atf-choix', v.choix),
                        'Séparés par | . Vide : le stagiaire tape sa réponse.');
       } else if (t === 'numerique') {
-        spec = atChamp('atf-formule', 'Formule de la réponse', atLigne('atf-formule', q.formule || ''),
-                       'Avec les clés des valeurs datées, sans crochets : smic_mensuel_brut*3. C’est la forme à privilégier.') +
+        spec = '<div class="at-formule"><label for="atf-formule">Formule de la réponse</label>' + atLigne('atf-formule', q.formule || '') +
+               '<div class="ops" id="at-ops">' +
+                 '<button type="button" class="large" data-ins="valeur">+ Valeur datée</button>' +
+                 '<button type="button" data-ins="*" aria-label="multiplié par">×</button><button type="button" data-ins="/" aria-label="divisé par">÷</button>' +
+                 '<button type="button" data-ins="+" aria-label="plus">+</button><button type="button" data-ins="-" aria-label="moins">−</button>' +
+                 '<button type="button" data-ins="(">(</button><button type="button" data-ins=")">)</button>' +
+                 '<button type="button" class="large" data-ins="arrondi">Arrondir au centime</button>' +
+                 '<button type="button" class="large" data-ins="effacer">Effacer</button></div>' +
+               '<p class="at-aide">Composez la formule avec les boutons : « + Valeur datée » ouvre la liste des valeurs, ' +
+               'les nombres se tapent au clavier (point ou virgule). Exemples : SMIC mensuel brut × 3 ; 8 % du plafond de la Sécurité sociale = plafond × 0,08.</p>' +
+               '<p class="lecture" id="at-lecture" aria-live="polite"></p></div>' +
                atChamp('atf-valeur', 'Ou valeur fixe', atLigne('atf-valeur', v.valeur), 'Seulement si elle découle des données de l’énoncé : déclarez-la alors ci-dessous.') +
                atChamp('atf-tolerance', 'Tolérance', atLigne('atf-tolerance', q.tolerance == null ? '' : q.tolerance), 'Écart admis : 0,01 par défaut.');
       } else if (t === 'ouverte') {
@@ -1495,7 +1510,7 @@ nav{display:none!important}
         (id ? '<h3 style="margin-top:1.2rem">Aperçu à ce jour</h3><div class="at-apercu">' +
           (ap.erreur ? '<span class="at-ctl ko">' + echappe(ap.erreur) + '</span>' :
            '<p><b>' + echappe(ap.enonce || '') + '</b></p>' +
-           (ap.valeur != null ? '<p>Réponse attendue aujourd’hui : <b>' + echappe(String(ap.valeur)) + '</b></p>' : '') +
+           (ap.valeur != null ? '<p>Réponse attendue aujourd’hui : <b>' + echappe(Number(ap.valeur).toLocaleString('fr-FR')) + '</b></p>' : '') +
            (ap.attendu && ap.attendu.trous ? '<p>Réponses admises : ' + ap.attendu.trous.map(function (a) { return echappe(a.join(' / ')); }).join(' · ') + '</p>' : '') +
            (ap.explication ? '<p class="muted">' + echappe(ap.explication) + '</p>' : '')) + '</div>' +
           '<h3 style="margin-top:1.2rem">Historique</h3><ul class="at-hist">' +
@@ -1509,6 +1524,7 @@ nav{display:none!important}
         if (!peutEcrire) x.disabled = true;
       });
       atValeursDatees();
+      if (t === 'numerique') atBrancherFormule();
 
       var b = [], s = q.statut;
       if (peutEcrire) b.push('<button class="btn" data-act="enregistrer">Enregistrer</button>');
@@ -1552,6 +1568,54 @@ nav{display:none!important}
       atFiche(nid); atMsg('Enregistré. La question est en brouillon : vérifiez le contrôle, puis transmettez-la.', 'ok');
     }).catch(function (x) { atMsg(x.message); });
   }
+  /* Aide à la formule : boutons d'opérations, lecture en clair et calcul du jour. */
+  function atBrancherFormule() {
+    var champ = $('#atf-formule'), lecture = $('#at-lecture'), minuteur = null;
+    if (!champ) return;
+    function inserer(txt) {
+      var d = champ.selectionStart == null ? champ.value.length : champ.selectionStart, fn = champ.selectionEnd == null ? d : champ.selectionEnd;
+      champ.value = champ.value.slice(0, d) + txt + champ.value.slice(fn);
+      champ.focus(); champ.selectionStart = champ.selectionEnd = d + txt.length; AT.champ = champ; tester();
+    }
+    function tester() {
+      clearTimeout(minuteur);
+      minuteur = setTimeout(function () {
+        var v = champ.value.replace(/(\d),(\d)/g, '$1.$2').trim();
+        if (v !== champ.value.trim()) { champ.value = v; }
+        if (!v) { lecture.className = 'lecture'; lecture.textContent = ''; return; }
+        atAppel('tester_formule', { p_formule: v }).then(function (r) {
+          if (r && r.ok) {
+            lecture.className = 'lecture ok';
+            lecture.innerHTML = 'Se lit : ' + echappe(r.lisible) + ' — aujourd’hui : <b>' + echappe(r.valeur_fr) + '</b>';
+          } else {
+            lecture.className = 'lecture ko';
+            lecture.textContent = (r && r.lisible ? 'Se lit : ' + r.lisible + ' — ' : '') + ((r && r.erreur) || 'Formule à vérifier.');
+          }
+        }).catch(function (e) { lecture.className = 'lecture ko'; lecture.textContent = e.message; });
+      }, 350);
+    }
+    champ.addEventListener('input', tester);
+    champ.addEventListener('focus', function () { AT.champ = champ; });
+    $('#at-ops').addEventListener('click', function (ev) {
+      var b = ev.target.closest('[data-ins]'); if (!b) return;
+      var x = b.dataset.ins;
+      if (x === 'effacer') { champ.value = ''; champ.focus(); tester(); return; }
+      if (x === 'arrondi') { champ.value = 'round(' + (champ.value.trim() || '0') + ', 2)'; champ.focus(); tester(); return; }
+      if (x === 'valeur') {
+        AT.champ = champ;
+        var det = document.querySelector('#at-valeurs') && document.querySelector('#at-valeurs').closest('details');
+        if (det) { det.open = true; det.scrollIntoView({ block: 'center' }); $('#at-cherche').focus(); }
+        return;
+      }
+      inserer(x);
+    });
+    /* La liste des valeurs datées insère la clé dans la formule : on relit. */
+    document.addEventListener('click', function (ev) {
+      if (ev.target.closest && ev.target.closest('#at-valeurs [data-cle]') && AT.champ === champ) setTimeout(tester, 0);
+    });
+    tester();
+  }
+
   function atValeursDatees() {
     var z = $('#at-valeurs'); if (!z) return;
     var p = AT.valeurs ? Promise.resolve(AT.valeurs) : atAppel('valeurs_datees');
@@ -1570,6 +1634,7 @@ nav{display:none!important}
       z.addEventListener('click', function (ev) {
         var b = ev.target.closest('[data-cle]'); if (!b) return;
         var c = AT.champ || $('#atf-enonce'), txt = '[[' + b.dataset.cle + ']]';
+        if (c && c.id === 'at-cherche') c = $('#atf-formule') || $('#atf-enonce');
         if (c.id === 'atf-formule') txt = b.dataset.cle;
         var d = c.selectionStart == null ? c.value.length : c.selectionStart, fn = c.selectionEnd == null ? d : c.selectionEnd;
         c.value = c.value.slice(0, d) + txt + c.value.slice(fn); c.focus();
