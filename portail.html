@@ -236,6 +236,18 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
 .corrige .elements-compo{margin:.35rem 0 .2rem;padding-left:.2rem;list-style:none}
 .corrige .elements-compo li{border:0;padding:.1rem 0;margin:0;font-size:.88rem}
 .corrige .source{display:block;font-size:.8rem;margin-top:.2rem}
+/* Memory : cartes face cachée, retournées deux par deux */
+.memory-jeu{display:grid;grid-template-columns:repeat(auto-fill,minmax(9.5rem,1fr));gap:.55rem;margin:.6rem 0}
+@media (max-width:520px){.memory-jeu{grid-template-columns:1fr 1fr;gap:.45rem}}
+.carte{font:inherit;min-height:6.2rem;padding:.55rem;border-radius:10px;border:1.5px solid var(--trame);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;text-align:center;font-size:.85rem;line-height:1.3;
+  background:var(--bleu,#1E5AA8);color:#fff;transition:background .15s}
+.carte .dos{font-size:1.4rem;opacity:.55}
+.carte.visible{background:#fff;color:inherit}
+.carte.visible.gauche{font-weight:700}
+.carte.trouvee{background:#EAF5EE;border-color:var(--ok);color:inherit;cursor:default}
+.carte.rate{border-color:var(--alerte)}
+.memory-compteur{font-size:.88rem}
 .corrige .elements{list-style:none; padding:0; margin:.4rem 0}
 .corrige .elements li{border:0; padding:.15rem 0; margin:0}
 .corrige .autoeval{margin:.5rem 0 0}
@@ -1113,6 +1125,7 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
     }
 
     if (e.regle && e.regle.rendu === 'grille') return void panneauGrille(p, tete, e);
+    if (e.regle && e.regle.rendu === 'memory') return void panneauMemory(p, tete, e);
     if (e.type === 'video')      return void panneauVideo(p, tete, e);
     if (e.type === 'qcm')        return void panneauQcm(p, tete, e);
     if (e.type === 'cas_pratique' || e.type === 'exercice') {
@@ -1881,6 +1894,103 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
     return h + '</ul>';
   }
   function ligneSource(d) { return d.source ? '<span class="muted source">Source : ' + echappe(d.source) + '</span>' : ''; }
+
+  /* --- Memory (regle.rendu = 'memory', étape d'entraînement) ---
+     Les cartes viennent d'une question d'appariement : chaque élément de
+     gauche et sa proposition de droite forment une paire. La solution reste
+     en base : chaque paire retournée est vérifiée par eval.memory_paire.
+     Rien n'est noté ; l'étape est validée quand toutes les paires sont
+     trouvées, et le jeu peut se rejouer librement. */
+  function panneauMemory(p, tete, e) {
+    p.innerHTML = tete + '<div class="chargement">Préparation du jeu…</div>';
+    contenu().from('questions').select('ref,type,enonce,propositions')
+      .eq('etape_id', e.id).order('ordre', { ascending: true })
+      .then(function (r) {
+        var q = (r.data || []).filter(function (x) { return x.type === 'appariement'; })[0];
+        var g = q && q.propositions && q.propositions.gauche || [], d = q && q.propositions && q.propositions.droite || [];
+        if (!q || !g.length || g.length !== d.length || g.length > 12) {
+          p.innerHTML = tete + '<p class="muted">Ce jeu n\'est pas encore prêt : il lui faut une question d\'appariement de 12 paires au plus, sans proposition en trop.</p>';
+          return;
+        }
+        if (estValidee(e.id)) {
+          p.innerHTML = tete + '<p class="muted">Étape validée. Vous pouvez rejouer pour vous entraîner.</p>' +
+            '<div class="actions"><button class="btn" id="mem-rejouer">Rejouer</button>' + boutonSuivant() + '</div>';
+          $('#mem-rejouer').addEventListener('click', function () { jouerMemory(p, tete, e, q); });
+          brancherSuivant();
+          return;
+        }
+        jouerMemory(p, tete, e, q);
+      });
+  }
+  function jouerMemory(p, tete, e, q) {
+    var g = q.propositions.gauche, d = q.propositions.droite, n = g.length;
+    var cartes = g.map(function (x, i) { return { cote: 'g', i: i, txt: texteProp(x) }; })
+      .concat(d.map(function (x, j) { return { cote: 'd', i: j, txt: texteProp(x) }; }));
+    for (var k = cartes.length - 1; k > 0; k--) { var m = Math.floor(Math.random() * (k + 1)), t = cartes[k]; cartes[k] = cartes[m]; cartes[m] = t; }
+    var essais = 0, trouvees = 0, premiere = null, occupe = false;
+    p.innerHTML = tete + (q.enonce ? '<p>' + echappe(q.enonce) + '</p>' : '') +
+      '<p class="muted" style="font-size:.85rem">Retournez deux cartes : un élément et la proposition qui lui correspond. ' +
+      'Les paires trouvées restent visibles.</p>' +
+      '<p class="memory-compteur" aria-live="polite"><span id="mem-trouvees">0</span> paire(s) sur ' + n + ' · <span id="mem-essais">0</span> essai(s)</p>' +
+      '<div class="memory-jeu">' + cartes.map(function (c, k) {
+        return '<button type="button" class="carte" data-k="' + k + '" aria-label="Carte ' + (k + 1) + ', face cachée"><span class="dos">?</span></button>';
+      }).join('') + '</div><div id="mem-fin"></div>';
+    var boutons = p.querySelectorAll('.carte');
+    function montrer(k, oui) {
+      var b = boutons[k], c = cartes[k];
+      b.classList.toggle('visible', oui); b.classList.toggle('gauche', oui && c.cote === 'g');
+      b.innerHTML = oui ? echappe(c.txt) : '<span class="dos">?</span>';
+      b.setAttribute('aria-label', 'Carte ' + (k + 1) + ', ' + (oui ? c.txt : 'face cachée'));
+    }
+    function cacherApres(a, b) {
+      occupe = true;
+      boutons[a].classList.add('rate'); boutons[b].classList.add('rate');
+      setTimeout(function () {
+        boutons[a].classList.remove('rate'); boutons[b].classList.remove('rate');
+        montrer(a, false); montrer(b, false); occupe = false;
+      }, 1300);
+    }
+    function compter() { $('#mem-essais').textContent = essais; $('#mem-trouvees').textContent = trouvees; }
+    function fin() {
+      var mieux = essais > n ? ' Essayez de faire mieux en rejouant.' : ' Un sans-faute !';
+      var zone = $('#mem-fin');
+      zone.innerHTML = '<div class="resultat"><p class="eyebrow">Toutes les paires sont trouvées</p>' +
+        '<p>' + essais + ' essais pour ' + n + ' paires.' + mieux + '</p>' +
+        '<div class="actions"><button class="btn" id="mem-rejouer">Rejouer</button>' + boutonSuivant() + '</div></div>';
+      $('#mem-rejouer').addEventListener('click', function () { jouerMemory(p, tete, e, q); });
+      brancherSuivant();
+      if (!estValidee(e.id)) {
+        lms().rpc('valider_etape_ref', { p_session_id: etat.seance.id, p_etape_ref: e.ref }).then(function (r) {
+          if (r.error) { alerte(p, r.error.message); return; }
+          lms().from('progressions').select('etape_id,statut,segments,duree_vue_s')
+            .eq('session_id', etat.seance.id).then(function (rp) { if (!rp.error) etat.progressions = rp.data || []; });
+        });
+      }
+    }
+    p.querySelector('.memory-jeu').addEventListener('click', function (ev) {
+      var b = ev.target.closest && ev.target.closest('.carte');
+      if (!b || occupe || b.classList.contains('visible')) return;
+      var k = +b.getAttribute('data-k');
+      montrer(k, true);
+      if (premiere === null) { premiere = k; return; }
+      var a = premiere; premiere = null; essais++; compter();
+      var ca = cartes[a], cb = cartes[k];
+      if (ca.cote === cb.cote) { cacherApres(a, k); return; }
+      var gi = ca.cote === 'g' ? ca.i : cb.i, di = ca.cote === 'd' ? ca.i : cb.i;
+      occupe = true;
+      evalu().rpc('memory_paire', { p_session_id: etat.seance.id, p_etape_ref: e.ref, p_question_ref: q.ref, p_g: gi, p_d: di })
+        .then(function (r) {
+          occupe = false;
+          if (r.error) { alerte(p, r.error.message); montrer(a, false); montrer(k, false); return; }
+          if (r.data === true) {
+            boutons[a].classList.add('trouvee'); boutons[k].classList.add('trouvee');
+            boutons[a].disabled = boutons[k].disabled = true;
+            trouvees++; compter();
+            if (trouvees === n) fin();
+          } else cacherApres(a, k);
+        });
+    });
+  }
 
   /* Les fonctions qui renvoient une table arrivent sous forme de liste. */
   function premiereLigne(d) { return (d && d.length !== undefined) ? (d[0] || {}) : (d || {}); }
