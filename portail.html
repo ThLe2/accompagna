@@ -212,6 +212,22 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
 .corrige li.juste{border-left-color:var(--ok)}
 .corrige li.faux{border-left-color:var(--alerte)}
 .corrige li.partiel{border-left-color:var(--trame)}
+/* Nouveaux types : appariement, remise en ordre, texte à trous */
+.app-ligne{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .8rem;padding:.45rem 0;border-bottom:1px dashed var(--trame)}
+.app-ligne:last-child{border-bottom:0}
+.app-gauche{flex:1 1 14rem;font-weight:600}
+.app-ligne select{flex:1 1 14rem;max-width:100%;min-height:2.4rem}
+.ordre-liste{list-style:none;margin:.3rem 0 0;padding:0;counter-reset:rang}
+.ordre-liste li{display:flex;align-items:center;gap:.5rem;padding:.45rem .5rem;margin-bottom:.35rem;border:1px solid var(--trame);border-radius:6px;background:#fff}
+.ordre-liste li .rang{min-width:1.6rem;font-weight:700;color:var(--gris-moyen)}
+.ordre-liste li .txt{flex:1}
+.ordre-liste button{min-width:2.4rem;min-height:2.4rem;font-size:1rem;cursor:pointer;border:1px solid var(--trame);border-radius:6px;background:#fff}
+.ordre-liste button:disabled{opacity:.35;cursor:default}
+.trous-texte{line-height:2.4}
+.trous-texte input,.trous-texte select{display:inline-block;width:auto;min-width:7rem;max-width:100%;min-height:2.1rem;margin:0 .2rem;padding:.1rem .4rem}
+.corrige .elements-compo{margin:.35rem 0 .2rem;padding-left:.2rem;list-style:none}
+.corrige .elements-compo li{border:0;padding:.1rem 0;margin:0;font-size:.88rem}
+.corrige .source{display:block;font-size:.8rem;margin-top:.2rem}
 .corrige .elements{list-style:none; padding:0; margin:.4rem 0}
 .corrige .elements li{border:0; padding:.15rem 0; margin:0}
 .corrige .autoeval{margin:.5rem 0 0}
@@ -1600,8 +1616,10 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
           }
           h += '<div class="question"><span class="question-num">Question ' + (i + 1) +
                ' · ' + q.points + ' point' + (q.points > 1 ? 's' : '') + '</span>' +
-               '<p class="question-enonce">' + echappe(q.enonce) + '</p>';
-          if (q.type === 'ouverte') {
+               '<p class="question-enonce">' + (q.type === 'trous' ? 'Complétez le texte.' : echappe(q.enonce)) + '</p>';
+          if (q.type === 'appariement' || q.type === 'ordre' || q.type === 'trous') {
+            h += saisieComposee(q);
+          } else if (q.type === 'ouverte') {
             h += '<textarea name="' + echappe(q.ref) + '" placeholder="Votre réponse"></textarea>';
           } else if (q.type === 'numerique') {
             h += '<input type="text" inputmode="decimal" name="' + echappe(q.ref) +
@@ -1624,6 +1642,7 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
              '<span class="muted" style="font-size:.85rem">Une seule tentative est possible.</span></div></form>';
         p.innerHTML = h;
         initCompteurs(p);
+        brancherOrdre(p);
 
         $('#form-qcm').addEventListener('submit', function (ev) {
           ev.preventDefault();
@@ -1632,7 +1651,9 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
           var reponses = {};
           qs.forEach(function (q) {
             var el;
-            if (q.type === 'ouverte') {
+            if (q.type === 'appariement' || q.type === 'ordre' || q.type === 'trous') {
+              reponses[q.ref] = lireComposee(q);
+            } else if (q.type === 'ouverte') {
               el = document.querySelector('textarea[name="' + q.ref + '"]');
               reponses[q.ref] = { texte: el ? el.value : '' };
             } else if (q.type === 'numerique') {
@@ -1653,17 +1674,18 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
              que de se heurter a un refus apres coup. */
           var manquantes = qs.filter(function (q) {
             var r = reponses[q.ref] || {};
-            if (q.type === 'ouverte')   return !String(r.texte || '').trim();
+            if (q.type === 'appariement' || q.type === 'ordre' || q.type === 'trous') return !r.complete;
             if (q.type === 'numerique') return !String(r.valeur || '').trim();
             if (q.type === 'multiple')  return !(r.index && r.index.length);
             return r.index === undefined || r.index === null;
           });
+          qs.forEach(function (q) { if (reponses[q.ref]) delete reponses[q.ref].complete; });
           if (manquantes.length) {
             var rangs = manquantes.map(function (q) { return qs.indexOf(q) + 1; });
             alerte(p, manquantes.length === 1
               ? 'Il manque la réponse à la question ' + rangs[0] + '.'
               : 'Il manque ' + manquantes.length + ' réponses : questions ' + rangs.join(', ') + '.');
-            var premiere = document.querySelector('[name="' + manquantes[0].ref + '"]');
+            var premiere = document.querySelector('[name="' + manquantes[0].ref + '"], [data-q="' + manquantes[0].ref + '"]');
             if (premiere && premiere.scrollIntoView) premiere.scrollIntoView({ behavior: 'smooth', block: 'center' });
             b.disabled = false; b.textContent = 'Envoyer mes réponses';
             return;
@@ -1684,6 +1706,126 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
         });
       });
   }
+
+  /* --- Appariement, remise en ordre, texte à trous ---
+     Ni glisser-déposer ni geste particulier : des listes de choix et des
+     boutons, utilisables au clavier, au doigt et au lecteur d'écran.
+     Les propositions arrivent mélangées : la solution n'est qu'en base. */
+  function texteProp(o) { return (o && typeof o === 'object') ? (o.texte || '') : String(o == null ? '' : o); }
+  function trousEnonce(enonce) {
+    var morceaux = [], numeros = [], re = /\{\{\s*(\d+)\s*\}\}/g, m, i = 0;
+    while ((m = re.exec(enonce || ''))) { morceaux.push(enonce.slice(i, m.index)); numeros.push(+m[1]); i = re.lastIndex; }
+    morceaux.push((enonce || '').slice(i));
+    return { morceaux: morceaux, numeros: numeros };
+  }
+  function saisieComposee(q) {
+    var ref = echappe(q.ref), pr = q.propositions || {}, h = '';
+    if (q.type === 'appariement') {
+      var g = pr.gauche || [], d = pr.droite || [];
+      h += '<div data-q="' + ref + '" role="group" aria-label="Associez chaque élément">';
+      g.forEach(function (x, i) {
+        var id = 'app-' + ref + '-' + i;
+        h += '<div class="app-ligne"><label class="app-gauche" for="' + id + '">' + echappe(texteProp(x)) + '</label>' +
+             '<select id="' + id + '" data-app="' + ref + '" data-g="' + i + '"><option value="">— choisir —</option>' +
+             d.map(function (y, j) { return '<option value="' + j + '">' + echappe(texteProp(y)) + '</option>'; }).join('') +
+             '</select></div>';
+      });
+      h += '</div><p class="muted" style="font-size:.82rem;margin:.4rem 0 0">Associez chaque élément de gauche à un élément de la liste.</p>';
+    } else if (q.type === 'ordre') {
+      h += '<ol class="ordre-liste" data-q="' + ref + '" data-ordre="' + ref + '" aria-label="Éléments à classer">';
+      (Array.isArray(pr) ? pr : []).forEach(function (x, i) {
+        h += '<li data-i="' + i + '"><span class="rang"></span><span class="txt">' + echappe(texteProp(x)) + '</span>' +
+             '<button type="button" class="monter" aria-label="Monter « ' + echappe(texteProp(x)) + ' »">↑</button>' +
+             '<button type="button" class="descendre" aria-label="Descendre « ' + echappe(texteProp(x)) + ' »">↓</button></li>';
+      });
+      h += '</ol><p class="muted" style="font-size:.82rem;margin:.4rem 0 0">Remettez les éléments dans l\'ordre avec les flèches, du premier au dernier.</p>' +
+           '<p class="ordre-annonce" aria-live="polite" style="position:absolute;left:-9999px"></p>';
+    } else {
+      var t = trousEnonce(q.enonce), choix = (pr && pr.trous) || [];
+      h += '<p class="trous-texte" data-q="' + ref + '">';
+      t.morceaux.forEach(function (m, k) {
+        h += echappe(m);
+        if (k < t.numeros.length) {
+          var n = t.numeros[k], liste = choix[n - 1], lib = 'Trou ' + n;
+          h += (liste && liste.length)
+            ? '<select data-trou="' + ref + '" data-n="' + n + '" aria-label="' + lib + '"><option value="">…</option>' +
+              liste.map(function (x) { return '<option>' + echappe(texteProp(x)) + '</option>'; }).join('') + '</select>'
+            : '<input type="text" autocomplete="off" data-trou="' + ref + '" data-n="' + n + '" aria-label="' + lib + '">';
+        }
+      });
+      h += '</p>';
+    }
+    return h;
+  }
+  function rangerOrdre(ol) {
+    var lis = ol.querySelectorAll('li');
+    Array.prototype.forEach.call(lis, function (li, k) {
+      li.querySelector('.rang').textContent = (k + 1) + '.';
+      li.querySelector('.monter').disabled = k === 0;
+      li.querySelector('.descendre').disabled = k === lis.length - 1;
+    });
+  }
+  function brancherOrdre(racine) {
+    Array.prototype.forEach.call(racine.querySelectorAll('ol[data-ordre]'), function (ol) {
+      rangerOrdre(ol);
+      ol.addEventListener('click', function (ev) {
+        var b = ev.target.closest && ev.target.closest('button'); if (!b || b.disabled) return;
+        var li = b.closest('li'), haut = b.classList.contains('monter');
+        if (haut && li.previousElementSibling) ol.insertBefore(li, li.previousElementSibling);
+        else if (!haut && li.nextElementSibling) ol.insertBefore(li.nextElementSibling, li);
+        rangerOrdre(ol);
+        /* Le focus suit l'élément déplacé, pour enchaîner au clavier. */
+        var cible = li.querySelector(haut ? '.monter' : '.descendre');
+        (cible.disabled ? li.querySelector(haut ? '.descendre' : '.monter') : cible).focus();
+        var annonce = ol.parentNode.querySelector('.ordre-annonce');
+        if (annonce) annonce.textContent = li.querySelector('.txt').textContent + ' : position ' +
+          (Array.prototype.indexOf.call(ol.children, li) + 1);
+      });
+    });
+  }
+  function lireComposee(q) {
+    var ref = q.ref;
+    if (q.type === 'appariement') {
+      var paires = [], ok = true;
+      Array.prototype.forEach.call(document.querySelectorAll('select[data-app="' + ref + '"]'), function (s) {
+        if (s.value === '') ok = false; else paires.push([+s.getAttribute('data-g'), +s.value]);
+      });
+      return { paires: paires, complete: ok && paires.length > 0 };
+    }
+    if (q.type === 'ordre') {
+      var ol = document.querySelector('ol[data-ordre="' + ref + '"]');
+      return { ordre: ol ? Array.prototype.map.call(ol.children, function (li) { return +li.getAttribute('data-i'); }) : [],
+               complete: true };
+    }
+    var champs = Array.prototype.slice.call(document.querySelectorAll('[data-trou="' + ref + '"]'))
+      .sort(function (a, b) { return a.getAttribute('data-n') - b.getAttribute('data-n'); });
+    var trous = champs.map(function (c) { return c.value.trim(); });
+    return { trous: trous, complete: trous.length > 0 && trous.every(function (x) { return x !== ''; }) };
+  }
+  /* Correction détaillée renvoyée par le serveur : élément par élément. */
+  function corrigeCompose(d) {
+    var pr = d.propositions || {}, att = d.attendu || {}, ok = d.elements || [], don = d.donnee || {}, h = '<ul class="elements-compo">';
+    if (att.paires) {
+      var g = pr.gauche || [], dr = pr.droite || [];
+      att.paires.forEach(function (pa, k) {
+        var donne = (don.paires || []).filter(function (x) { return x[0] === pa[0]; })[0];
+        h += '<li>' + (ok[k] ? '✓ ' : '✗ ') + echappe(texteProp(g[pa[0]])) + ' → ' + echappe(texteProp(dr[pa[1]])) +
+             (!ok[k] && donne ? ' <span class="muted">(vous : ' + echappe(texteProp(dr[donne[1]])) + ')</span>' : '') + '</li>';
+      });
+    } else if (att.ordre) {
+      att.ordre.forEach(function (i, k) {
+        h += '<li>' + (ok[k] ? '✓ ' : '✗ ') + (k + 1) + '. ' + echappe(texteProp((Array.isArray(pr) ? pr : [])[i])) + '</li>';
+      });
+    } else if (att.trous) {
+      att.trous.forEach(function (alt, k) {
+        var v = (don.trous || [])[k];
+        h += '<li>' + (ok[k] ? '✓ ' : '✗ ') + 'Trou ' + (k + 1) + ' : ' + echappe(texteProp((alt || [])[0])) +
+             (!ok[k] && v ? ' <span class="muted">(vous : ' + echappe(v) + ')</span>' : '') + '</li>';
+      });
+    }
+    return h + '</ul>';
+  }
+  function ligneSource(d) { return d.source ? '<span class="muted source">Source : ' + echappe(d.source) + '</span>' : ''; }
 
   /* Les fonctions qui renvoient une table arrivent sous forme de liste. */
   function premiereLigne(d) { return (d && d.length !== undefined) ? (d[0] || {}) : (d || {}); }
@@ -1749,6 +1891,16 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
           h += (d.explication ? '<br><span class="muted">' + echappe(d.explication) + '</span>' : '') + '</li>';
           return;
         }
+        /* Appariement, ordre, trous : points partiels possibles. */
+        if (d.sur != null && d.elements) {
+          var po = +d.points_obtenus, pt = +d.points;
+          var enonceAff = (enonces[ref] || d.enonce || ref).replace(/\{\{\s*(\d+)\s*\}\}/g, '…');
+          h += '<li class="' + (po >= pt ? 'juste' : (po > 0 ? 'partiel' : 'faux')) + '"><strong>' + echappe(enonceAff) + '</strong> — ' +
+               d.justes + ' sur ' + d.sur + ' · ' + String(po).replace('.', ',') + ' / ' + String(pt).replace('.', ',') +
+               ' point' + (pt > 1 ? 's' : '') + corrigeCompose(d) +
+               (d.explication ? '<span class="muted">' + echappe(d.explication) + '</span>' : '') + ligneSource(d) + '</li>';
+          return;
+        }
         /* Rédaction corrigée par éléments attendus : le serveur dit ce qui a
            été trouvé et ce qui manque ; la réponse modèle suit. */
         if (d.attendu && d.attendu.correction === 'elements') {
@@ -1761,7 +1913,7 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
                (d.trouves || []).map(function (x) { return '<li>✓ ' + echappe(x) + '</li>'; }).join('') +
                (d.manquants || []).map(function (x) { return '<li>✗ ' + echappe(x) + ' — absent de votre réponse</li>'; }).join('') +
                '</ul>';
-          h += (d.explication ? '<span class="muted">' + echappe(d.explication) + '</span>' : '') + '</li>';
+          h += (d.explication ? '<span class="muted">' + echappe(d.explication) + '</span>' : '') + ligneSource(d) + '</li>';
           return;
         }
         /* Auto-évaluation : en mode autonome, les points de la réponse modèle
@@ -1771,7 +1923,7 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
              (d.juste === true ? ' — réponse correcte' : d.juste === false ? ' — réponse incorrecte'
                : autonome ? ' — comparez votre texte à la réponse modèle' : ' — à corriger par le formateur') +
              (autonome && texte ? '<span class="texte-stagiaire"><em>Votre texte :</em>\n' + echappe(texte) + '</span>' : '') +
-             (d.explication ? '<br><span class="muted">' + echappe(d.explication) + '</span>' : '') +
+             (d.explication ? '<br><span class="muted">' + echappe(d.explication) + '</span>' : '') + ligneSource(d) +
              (aCocher ? '<div class="autoeval"><p class="eyebrow">Cochez les points que votre réponse contenait</p>' +
                aCocher.map(function (x) { return '<label><input type="checkbox" class="autoeval-case"> ' + echappe(x) + '</label>'; }).join('') +
                '<p class="muted autoeval-bilan" style="font-size:.85rem"></p></div>' : '') + '</li>';
