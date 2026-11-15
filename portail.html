@@ -213,10 +213,18 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
 .corrige li.faux{border-left-color:var(--alerte)}
 .corrige li.partiel{border-left-color:var(--trame)}
 /* Nouveaux types : appariement, remise en ordre, texte à trous */
-.app-ligne{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem .8rem;padding:.45rem 0;border-bottom:1px dashed var(--trame)}
-.app-ligne:last-child{border-bottom:0}
-.app-gauche{flex:1 1 14rem;font-weight:600}
-.app-ligne select{flex:1 1 14rem;max-width:100%;min-height:2.4rem}
+.app-elements{display:flex;flex-wrap:wrap;gap:.45rem;margin:.3rem 0 .7rem}
+.app-g,.app-d{font:inherit;text-align:left;cursor:pointer;border:1.5px solid var(--trame);border-radius:8px;background:#fff;color:inherit}
+.app-g{display:inline-flex;align-items:center;gap:.45rem;padding:.5rem .7rem;font-weight:600;min-height:2.6rem}
+.app-g .lettre,.app-d .lettre{display:inline-flex;align-items:center;justify-content:center;min-width:1.6rem;height:1.6rem;border-radius:50%;background:var(--trame);font-size:.85rem;font-weight:700}
+.app-g[aria-pressed="true"]{border-color:var(--bleu,#1E5AA8);box-shadow:0 0 0 3px rgba(30,90,168,.18)}
+.app-g.relie{background:#F3F7FC}
+.app-g.relie .etat::after{content:" ✓";color:var(--ok)}
+.app-defs{display:grid;gap:.45rem}
+.app-d{display:flex;align-items:flex-start;gap:.6rem;padding:.6rem .7rem;width:100%;line-height:1.35}
+.app-d .lettre{flex:none;background:transparent;border:1.5px dashed var(--trame);color:transparent}
+.app-d.prise{background:#F3F7FC;border-color:var(--bleu,#1E5AA8)}
+.app-d.prise .lettre{background:var(--bleu,#1E5AA8);border-style:solid;color:#fff}
 .ordre-liste{list-style:none;margin:.3rem 0 0;padding:0;counter-reset:rang}
 .ordre-liste li{display:flex;align-items:center;gap:.5rem;padding:.45rem .5rem;margin-bottom:.35rem;border:1px solid var(--trame);border-radius:6px;background:#fff}
 .ordre-liste li .rang{min-width:1.6rem;font-weight:700;color:var(--gris-moyen)}
@@ -1643,6 +1651,7 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
         p.innerHTML = h;
         initCompteurs(p);
         brancherOrdre(p);
+        brancherAppariement(p);
 
         $('#form-qcm').addEventListener('submit', function (ev) {
           ev.preventDefault();
@@ -1721,16 +1730,22 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
   function saisieComposee(q) {
     var ref = echappe(q.ref), pr = q.propositions || {}, h = '';
     if (q.type === 'appariement') {
+      /* Au toucher : un élément, puis sa définition. Tout le texte reste
+         lisible, contrairement à une liste déroulante sur téléphone. */
       var g = pr.gauche || [], d = pr.droite || [];
-      h += '<div data-q="' + ref + '" role="group" aria-label="Associez chaque élément">';
+      h += '<div class="app" data-q="' + ref + '" data-app="' + ref + '">' +
+           '<p class="muted" style="font-size:.82rem;margin:.2rem 0 .4rem">Touchez un élément, puis la proposition qui lui correspond. ' +
+           'Touchez une proposition déjà reliée pour la libérer.</p><div class="app-elements" role="group" aria-label="Éléments à relier">';
       g.forEach(function (x, i) {
-        var id = 'app-' + ref + '-' + i;
-        h += '<div class="app-ligne"><label class="app-gauche" for="' + id + '">' + echappe(texteProp(x)) + '</label>' +
-             '<select id="' + id + '" data-app="' + ref + '" data-g="' + i + '"><option value="">— choisir —</option>' +
-             d.map(function (y, j) { return '<option value="' + j + '">' + echappe(texteProp(y)) + '</option>'; }).join('') +
-             '</select></div>';
+        h += '<button type="button" class="app-g" data-g="' + i + '" aria-pressed="' + (i === 0) + '"><span class="lettre">' +
+             String.fromCharCode(65 + i) + '</span><span>' + echappe(texteProp(x)) + '</span><span class="etat"></span></button>';
       });
-      h += '</div><p class="muted" style="font-size:.82rem;margin:.4rem 0 0">Associez chaque élément de gauche à un élément de la liste.</p>';
+      h += '</div><div class="app-defs" role="group" aria-label="Propositions">';
+      d.forEach(function (y, j) {
+        h += '<button type="button" class="app-d" data-d="' + j + '" aria-label="' + echappe(texteProp(y)) + ' : non reliée"><span class="lettre">·</span><span>' +
+             echappe(texteProp(y)) + '</span></button>';
+      });
+      h += '</div><p class="app-annonce" aria-live="polite" style="position:absolute;left:-9999px"></p></div>';
     } else if (q.type === 'ordre') {
       h += '<ol class="ordre-liste" data-q="' + ref + '" data-ordre="' + ref + '" aria-label="Éléments à classer">';
       (Array.isArray(pr) ? pr : []).forEach(function (x, i) {
@@ -1765,6 +1780,46 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
       li.querySelector('.descendre').disabled = k === lis.length - 1;
     });
   }
+  function brancherAppariement(racine) {
+    Array.prototype.forEach.call(racine.querySelectorAll('div.app[data-app]'), function (bloc) {
+      var gs = bloc.querySelectorAll('.app-g'), ds = bloc.querySelectorAll('.app-d');
+      var actif = function () { return bloc.querySelector('.app-g[aria-pressed="true"]'); };
+      function dessiner() {
+        Array.prototype.forEach.call(ds, function (dd) {
+          var j = dd.getAttribute('data-d'), lg = bloc.querySelector('.app-g[data-lien="' + j + '"]');
+          dd.classList.toggle('prise', !!lg);
+          dd.querySelector('.lettre').textContent = lg ? lg.querySelector('.lettre').textContent : '·';
+          dd.setAttribute('aria-label', dd.querySelector('span:last-child').textContent +
+            (lg ? ' : reliée à ' + lg.querySelector('span:nth-child(2)').textContent : ' : non reliée'));
+        });
+        Array.prototype.forEach.call(gs, function (gg) { gg.classList.toggle('relie', gg.hasAttribute('data-lien')); });
+      }
+      function choisir(gg) {
+        Array.prototype.forEach.call(gs, function (x) { x.setAttribute('aria-pressed', String(x === gg)); });
+      }
+      bloc.addEventListener('click', function (ev) {
+        var gg = ev.target.closest && ev.target.closest('.app-g'), dd = ev.target.closest && ev.target.closest('.app-d');
+        if (gg) { choisir(gg); return; }
+        if (!dd) return;
+        var j = dd.getAttribute('data-d'), deja = bloc.querySelector('.app-g[data-lien="' + j + '"]'), a = actif();
+        var annonce = bloc.querySelector('.app-annonce');
+        if (deja && (!a || deja === a)) {   /* retouchée par son propre élément : on libère */
+          deja.removeAttribute('data-lien'); choisir(deja); dessiner();
+          if (annonce) annonce.textContent = 'Lien retiré pour ' + deja.querySelector('span:nth-child(2)').textContent;
+          return;
+        }
+        if (!a) return;
+        if (deja) deja.removeAttribute('data-lien');          /* une proposition ne sert qu'une fois */
+        a.setAttribute('data-lien', j);
+        dessiner();
+        if (annonce) annonce.textContent = a.querySelector('span:nth-child(2)').textContent + ' relié à ' + dd.querySelector('span:last-child').textContent;
+        /* On passe seul à l'élément suivant encore libre. */
+        var suivant = Array.prototype.filter.call(gs, function (x) { return !x.hasAttribute('data-lien'); })[0];
+        if (suivant) { choisir(suivant); suivant.focus({ preventScroll: true }); }
+      });
+      dessiner();
+    });
+  }
   function brancherOrdre(racine) {
     Array.prototype.forEach.call(racine.querySelectorAll('ol[data-ordre]'), function (ol) {
       rangerOrdre(ol);
@@ -1787,8 +1842,8 @@ textarea:focus{border-color:var(--prune); outline:none; box-shadow:0 0 0 3px var
     var ref = q.ref;
     if (q.type === 'appariement') {
       var paires = [], ok = true;
-      Array.prototype.forEach.call(document.querySelectorAll('select[data-app="' + ref + '"]'), function (s) {
-        if (s.value === '') ok = false; else paires.push([+s.getAttribute('data-g'), +s.value]);
+      Array.prototype.forEach.call(document.querySelectorAll('div.app[data-app="' + ref + '"] .app-g'), function (b) {
+        if (!b.hasAttribute('data-lien')) ok = false; else paires.push([+b.getAttribute('data-g'), +b.getAttribute('data-lien')]);
       });
       return { paires: paires, complete: ok && paires.length > 0 };
     }
