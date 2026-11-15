@@ -1474,9 +1474,16 @@ nav{display:none!important}
                  '<button type="button" data-ins="+" aria-label="plus">+</button><button type="button" data-ins="-" aria-label="moins">−</button>' +
                  '<button type="button" data-ins="(">(</button><button type="button" data-ins=")">)</button>' +
                  '<button type="button" class="large" data-ins="arrondi">Arrondir au centime</button>' +
+                 '<button type="button" class="large" data-ins="si">Si … alors … sinon</button>' +
+                 '<button type="button" data-ins=" < " aria-label="inférieur à">&lt;</button><button type="button" data-ins=" > " aria-label="supérieur à">&gt;</button>' +
+                 '<button type="button" data-ins=" >= " aria-label="supérieur ou égal à">≥</button>' +
+                 '<button type="button" class="large" data-ins="pass">PASS d’une année</button>' +
                  '<button type="button" class="large" data-ins="effacer">Effacer</button></div>' +
                '<p class="at-aide">Composez la formule avec les boutons : « + Valeur datée » ouvre la liste des valeurs, ' +
                'les nombres se tapent au clavier (point ou virgule). Exemples : SMIC mensuel brut × 3 ; 8 % du plafond de la Sécurité sociale = plafond × 0,08.</p>' +
+               '<p class="at-aide">« Si … alors … sinon » pose une condition : <code>case when 4000 &lt; tns_presta_ij_seuil_zero then 0 else 4000 / 730 end</code>. ' +
+               '« PASS d’une année » lit le PASS de l’année de la séance décalée : <code>pass_annee(-1)</code> = année précédente. ' +
+               'Moyenne des 3 dernières années : <code>(pass_annee(-1) + pass_annee(-2) + pass_annee(-3)) / 3</code>.</p>' +
                '<p class="lecture" id="at-lecture" aria-live="polite"></p></div>' +
                atChamp('atf-valeur', 'Ou valeur fixe', atLigne('atf-valeur', v.valeur), 'Seulement si elle découle des données de l’énoncé : déclarez-la alors ci-dessous.') +
                atChamp('atf-tolerance', 'Tolérance', atLigne('atf-tolerance', q.tolerance == null ? '' : q.tolerance), 'Écart admis : 0,01 par défaut.');
@@ -1601,6 +1608,12 @@ nav{display:none!important}
       var x = b.dataset.ins;
       if (x === 'effacer') { champ.value = ''; champ.focus(); tester(); return; }
       if (x === 'arrondi') { champ.value = 'round(' + (champ.value.trim() || '0') + ', 2)'; champ.focus(); tester(); return; }
+      if (x === 'si') {
+        var d0 = champ.selectionStart == null ? champ.value.length : champ.selectionStart;
+        inserer('case when  then  else  end');
+        champ.selectionStart = champ.selectionEnd = d0 + 'case when '.length; return;
+      }
+      if (x === 'pass') { inserer('pass_annee(-1)'); return; }
       if (x === 'valeur') {
         AT.champ = champ;
         var det = document.querySelector('#at-valeurs') && document.querySelector('#at-valeurs').closest('details');
