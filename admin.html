@@ -228,6 +228,43 @@ nav{display:none!important}
 .at-formule .lecture{margin:.4rem 0 0;font-size:.9rem}
 .at-formule .lecture.ok b{color:#1B7F45}.at-formule .lecture.ko{color:#B42318}
 .at-retour{background:none;border:0;color:var(--prune,#1E5AA8);cursor:pointer;font:inherit;padding:0;margin-bottom:.6rem;text-decoration:underline}
+.at-lexique{border:1px dashed var(--trame);border-radius:8px;padding:.6rem .8rem;background:#FCFDFE}
+.at-lexique textarea{min-height:3.5rem}
+.at-var-ligne{margin:.25rem 0}
+.at-grille .at-var,.at-var{display:inline-flex;align-items:center;gap:.25rem;margin:0 .6rem .2rem 0;font-weight:400;font-size:.85rem;white-space:nowrap;text-transform:none;letter-spacing:normal;color:inherit}
+.at-var input{width:auto;margin:0}
+/* Mode d'emploi de l'atelier (15/11/2026) */
+.ag-bouton{float:right;display:inline-flex;align-items:center;gap:.4rem;border:1px solid var(--prune);color:var(--prune-fonce);background:#fff;border-radius:999px;padding:.3rem .8rem;font:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
+.ag-bouton span{display:inline-grid;place-items:center;width:1.2rem;height:1.2rem;border-radius:50%;background:var(--prune);color:#fff;font-size:.75rem}
+.ag-bouton:hover,.ag-bouton:focus-visible{background:var(--prune-clair)}
+.ag-bienvenue{clear:both;background:var(--prune-clair);border:1px solid var(--rose);border-radius:8px;padding:.7rem .9rem;margin:.4rem 0 1rem;font-size:.9rem}
+.ag-bienvenue .btn{margin-left:.4rem}
+.ag-lien{font-size:.82rem;font-weight:500;margin-left:.5rem;color:var(--prune);cursor:pointer;text-decoration:underline;background:none;border:0;padding:0;font-family:inherit}
+#at-guide{position:fixed;inset:0;z-index:1000}
+#at-guide[hidden]{display:none}
+.ag-fond{position:absolute;inset:0;background:rgba(18,30,52,.35)}
+.ag-panneau{position:absolute;top:0;right:0;bottom:0;width:min(760px,100%);background:#fff;box-shadow:-6px 0 24px rgba(0,0,0,.18);display:flex;flex-direction:column;outline:none}
+.ag-tete{display:flex;justify-content:space-between;align-items:center;padding:.8rem 1.1rem;border-bottom:1px solid var(--trame);background:var(--prune-clair)}
+.ag-tete h2{margin:0}
+.ag-fermer{border:0;background:none;font-size:1.6rem;line-height:1;cursor:pointer;color:var(--prune-fonce);padding:.1rem .4rem}
+.ag-corps{overflow:auto;padding:1rem 1.2rem 3rem;font-size:.92rem;line-height:1.5}
+.ag-corps section{scroll-margin-top:.6rem;border-radius:8px;transition:background .6s}
+.ag-corps section.ag-vise{background:#FFF8E1}
+.ag-corps h3{margin-top:1.6rem;padding-top:.6rem;border-top:1px solid var(--trame)}
+.ag-corps h4{margin:1.1rem 0 .3rem;color:var(--prune-fonce);font-size:.92rem}
+.ag-corps code{background:#F1F4F9;border-radius:4px;padding:0 .25rem;font-size:.85em}
+.ag-sommaire{background:#F8FAFD;border:1px solid var(--trame);border-radius:8px;padding:.6rem .9rem}
+.ag-sommaire ol{margin:.3rem 0 0;padding-left:1.3rem;columns:2;column-gap:1.5rem}
+@media (max-width:600px){.ag-sommaire ol{columns:1}}
+.ag-etapes li{margin-bottom:.35rem}
+.ag-circuit{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;margin:.4rem 0 .6rem}
+.ag-type{border:1px solid var(--trame);border-radius:8px;padding:.2rem .9rem .5rem;margin:.6rem 0}
+.ag-exemple{background:#F8FAFD;border-left:3px solid var(--prune);padding:.5rem .7rem;margin:.4rem 0;font-size:.88rem}
+.ag-piege{font-size:.86rem;color:#7A4B00;background:#FFF7E6;border-radius:6px;padding:.4rem .6rem}
+.ag-astuce{background:#EEF6EF;border-radius:6px;padding:.5rem .7rem;font-size:.88rem}
+.ag-coche{list-style:none;padding-left:0}.ag-coche li::before{content:'☐ ';color:var(--prune)}
+.ag-faq dt{font-weight:600;margin-top:.6rem}.ag-faq dd{margin:.15rem 0 0 0}
+body.ag-ouvert{overflow:hidden}
 </style>
 </head>
 <body>
@@ -1053,6 +1090,7 @@ nav{display:none!important}
     assistant: '<rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 12v1M15 12v1M9.5 16h5"/>',
     atelier: '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/>',
     validations: '<path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/>',
+    lexique: '<path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11M9 8h6M9 11h4"/>',
     roles: '<circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M2.5 20c.6-3.4 2.9-5.5 5.5-5.5s4.9 2.1 5.5 5.5M14 15.2c2.6-.6 5.3 1 6 4.8"/>'
   };
   function icone(n) {
@@ -1083,6 +1121,7 @@ nav{display:none!important}
     atelier:     { titre: 'Atelier de questions', parent: 'm-modules', ouvrir: function () { ouvrirAtelier('atelier'); } },
     validations: { titre: 'Mes validations', parent: 'm-modules', ouvrir: function () { ouvrirAtelier('validations'); } },
     roles:       { titre: 'Rôles de production', parent: 'm-groupes', ouvrir: function () { ouvrirAtelier('roles'); } },
+    lexique:     { titre: 'Lexique des équivalences', parent: 'm-modules', ouvrir: function () { ouvrirAtelier('lexique'); } },
     assistant:   { titre: 'Assistant du cours', parent: 'm-modules', gestion: true,
                    ouvrir: function () { ouvrirOnglet('modules'); } }
   };
@@ -1125,6 +1164,7 @@ nav{display:none!important}
         { ico: 'maj', t: 'Mises à jour des DA', s: 'Corrections de DA déjà publiés', console: 'maj' },
         { ico: 'atelier', t: 'Atelier de questions', s: 'Rédiger, valider, signer et publier les questions', feuille: 'atelier' },
         { ico: 'validations', t: 'Mes validations', s: 'Questions qui attendent votre décision', feuille: 'validations' },
+        { ico: 'lexique', t: 'Lexique des équivalences', s: 'Expressions acceptées comme équivalentes dans les rédactions', feuille: 'lexique' },
         { ico: 'assistant', t: 'Assistant du cours', s: "Modules ouverts aux questions des stagiaires", feuille: 'assistant' }
       ] },
       'm-mes': { titre: 'Mes séances', parent: estGestionnaire ? 'accueil' : null, tuiles: [
@@ -1257,7 +1297,8 @@ nav{display:none!important}
                    appariement: 'Appariement', ordre: 'Remise en ordre', trous: 'Texte à trous' };
   function atA(r) { return AT.roles.indexOf(r) >= 0; }
   function atStatut(s) { return '<span class="at-statut ' + s + '">' + echappe(AT_STATUTS[s] || s) + '</span>'; }
-  function atCtl(c) { return c === 'OK' ? '<span class="at-ctl ok">OK</span>' : '<span class="at-ctl ko">' + echappe(c || '') + '</span>'; }
+  function atCtl(c) { return c === 'OK' ? '<span class="at-ctl ok">OK</span>' : '<span class="at-ctl ko">' + echappe(c || '') + '</span>' +
+    (c ? ' <button type="button" class="ag-lien" data-guide="ag-controle">Que faire ?</button>' : ''); }
   function atMsg(t, genre) { if (t) alerte('#msg-atelier', t, genre); else $('#msg-atelier').innerHTML = ''; }
   function atAppel(fn, corps) { return appeler('lms', 'atelier_' + fn, corps || {}); }
   function atLignes(t) { return String(t || '').split(/\r?\n/).map(function (x) { return x.trim(); }).filter(Boolean); }
@@ -1272,11 +1313,12 @@ nav{display:none!important}
   function ouvrirAtelier(mode) {
     cacherVues();
     $('#vue-atelier').hidden = false;
-    AT.mode = mode; atMsg('');
+    AT.mode = mode; atMsg(''); atGuideBouton();
     $('#at-contenu').innerHTML = '<div class="chargement">Chargement…</div>';
     atAppel('mes_roles').then(function (r) {
       AT.roles = r || [];
       if (mode === 'roles') return atRolesVue();
+      if (mode === 'lexique') return atLexiqueVue();
       if (mode === 'validations') return atValidations();
       return atAccueil();
     }).catch(function (e) { $('#at-contenu').innerHTML = ''; atMsg(e.message); });
@@ -1296,7 +1338,7 @@ nav{display:none!important}
       $('#at-contenu').innerHTML = '<h2>Atelier de questions</h2>' +
         '<p class="sub">Rédigez les questions d’un module, faites-les valider par le service pédagogique puis signer par la direction, ' +
         'et publiez-les dans le DA. Aucune valeur en dur : un délai, un taux ou un montant s’écrit comme un renvoi à la valeur datée, ' +
-        'par exemple <code>[[smic_mensuel_brut]]</code>.</p>' + atBandeauRoles() +
+        'par exemple <code>[[smic_mensuel_brut]]</code>. <button type="button" class="ag-lien" data-guide="ag-creer">Comment créer une question ?</button></p>' + atBandeauRoles() +
         '<div style="max-width:460px;margin:.6rem 0 1rem"><label for="at-da">Module</label><select id="at-da"><option value="">Choisir un module…</option>' +
         AT.das.map(function (d) { return '<option value="' + d.id + '"' + (d.id === AT.daId ? ' selected' : '') + '>' + echappe(d.libelle) + ' (' + echappe(d.code) + ')</option>'; }).join('') +
         '</select></div><div id="at-etapes"></div>';
@@ -1397,6 +1439,8 @@ nav{display:none!important}
       v.valeur = at.valeur != null ? String(at.valeur) : '';
     } else if (q.type === 'ouverte') {
       v.elements = (at.elements || []).map(function (e) { return [e.libelle].concat(e.accepte || []).join(' | '); }).join('\n');
+      AT.exclus = {};
+      (at.elements || []).forEach(function (e) { if (e.exclus && e.exclus.length) AT.exclus[e.libelle] = e.exclus.slice(); });
     }
     return v;
   }
@@ -1430,7 +1474,9 @@ nav{display:none!important}
     } else if (type === 'ouverte') {
       var els = atLignes(val('atf-elements')).map(function (x) {
         var p = x.split('|').map(function (y) { return y.trim(); }).filter(Boolean);
-        return { libelle: p[0], accepte: p.length > 1 ? p.slice(1) : [p[0]] };
+        var el = { libelle: p[0], accepte: p.length > 1 ? p.slice(1) : [p[0]] };
+        if (AT.exclus && AT.exclus[p[0]] && AT.exclus[p[0]].length) el.exclus = AT.exclus[p[0]].slice();
+        return el;
       });
       o.attendu = els.length ? { elements: els } : {};
     }
@@ -1479,7 +1525,7 @@ nav{display:none!important}
                  '<button type="button" data-ins=" >= " aria-label="supérieur ou égal à">≥</button>' +
                  '<button type="button" class="large" data-ins="pass">PASS d’une année</button>' +
                  '<button type="button" class="large" data-ins="effacer">Effacer</button></div>' +
-               '<p class="at-aide">Composez la formule avec les boutons : « + Valeur datée » ouvre la liste des valeurs, ' +
+               '<p class="at-aide"><button type="button" class="ag-lien" style="margin-left:0" data-guide="ag-formules">Toute l’aide sur les formules</button> — Composez la formule avec les boutons : « + Valeur datée » ouvre la liste des valeurs, ' +
                'les nombres se tapent au clavier (point ou virgule). Exemples : SMIC mensuel brut × 3 ; 8 % du plafond de la Sécurité sociale = plafond × 0,08.</p>' +
                '<p class="at-aide">« Si … alors … sinon » pose une condition : <code>case when 4000 &lt; tns_presta_ij_seuil_zero then 0 else 4000 / 730 end</code>. ' +
                '« PASS d’une année » lit le PASS de l’année de la séance décalée : <code>pass_annee(-1)</code> = année précédente. ' +
@@ -1489,11 +1535,19 @@ nav{display:none!important}
                atChamp('atf-tolerance', 'Tolérance', atLigne('atf-tolerance', q.tolerance == null ? '' : q.tolerance), 'Écart admis : 0,01 par défaut.');
       } else if (t === 'ouverte') {
         spec = atChamp('atf-elements', 'Éléments attendus, un par ligne : libellé | expression admise | autre expression', atTexte('atf-elements', v.elements),
-                       'Vide : rédaction hors barème, corrigée par un formateur.', true);
+                       'Vide : rédaction hors barème, corrigée par un formateur. Pluriels, petites fautes de frappe, accents et nombres en lettres (« huit » = 8) sont acceptés d’office.', true) +
+               '<div class="large at-lexique" id="at-lexique"><b>Variantes acceptées grâce au lexique</b> ' +
+               '<button type="button" class="ag-lien" data-guide="ag-lexique">Comment ça marche ?</button>' +
+               '<div id="at-variantes" class="at-aide">Saisissez les éléments attendus : les équivalences du lexique s’affichent ici.</div>' +
+               '<label for="at-essai" style="margin-top:.7rem">Essayer une réponse de stagiaire</label>' +
+               '<textarea id="at-essai" placeholder="Tapez une réponse comme l’écrirait un stagiaire, puis cliquez sur « Essayer »."></textarea>' +
+               '<div class="at-boutons" style="margin:.4rem 0"><button type="button" class="btn btn-secondaire" id="at-essayer">Essayer</button></div>' +
+               '<div id="at-essai-resultat" aria-live="polite"></div></div>';
       }
       var ap = q.apercu || {};
       $('#at-contenu').innerHTML = '<button class="at-retour" id="at-retour">← ' + (AT.retour === atValidations ? 'Mes validations' : 'Questions de l’étape') + '</button>' +
-        '<h2>' + (id ? 'Question ' + echappe(q.ref) : 'Nouvelle question') + ' · ' + echappe(AT_TYPES[t]) + '</h2>' +
+        '<h2>' + (id ? 'Question ' + echappe(q.ref) : 'Nouvelle question') + ' · ' + echappe(AT_TYPES[t]) +
+        ' <button type="button" class="ag-lien" data-guide="ag-type-' + t + '">Aide : remplir une question « ' + echappe(AT_TYPES[t]) + ' »</button></h2>' +
         '<p>' + atStatut(q.statut) + (q.origine === 'outil' ? ' <span class="muted">proposée par l’outil</span>' : '') +
         (id ? ' · Contrôle : ' + atCtl(q.controle) : '') + '</p>' +
         '<div class="at-grille">' +
@@ -1511,7 +1565,7 @@ nav{display:none!important}
                   'Par exemple « 3 » dans « sur 3 mois ». Visible à la validation. Toute autre valeur doit être un renvoi.') +
           atChamp('atf-commentaire', 'Commentaire (pour l’historique ou un renvoi à l’auteur)', atLigne('atf-commentaire', ''), '', true) +
         '</div>' +
-        '<details style="margin-top:.8rem"><summary><b>Insérer une valeur datée</b> — cliquez dans un champ, puis sur une valeur</summary>' +
+        '<details style="margin-top:.8rem"><summary><b>Insérer une valeur datée</b> — cliquez dans un champ, puis sur une valeur <button type="button" class="ag-lien" data-guide="ag-valeurs">En savoir plus</button></summary>' +
           '<input id="at-cherche" placeholder="Chercher : smic, livret, plafond…" style="margin-top:.5rem"><div class="at-valeurs" id="at-valeurs"></div></details>' +
         '<div class="at-boutons" id="at-decisions"></div>' +
         (id ? '<h3 style="margin-top:1.2rem">Aperçu à ce jour</h3><div class="at-apercu">' +
@@ -1532,6 +1586,7 @@ nav{display:none!important}
       });
       atValeursDatees();
       if (t === 'numerique') atBrancherFormule();
+      if (t === 'ouverte') atBrancherLexique(q);
 
       var b = [], s = q.statut;
       if (peutEcrire) b.push('<button class="btn" data-act="enregistrer">Enregistrer</button>');
@@ -1561,6 +1616,8 @@ nav{display:none!important}
   function atEnregistrer(q, t) {
     var val = function (x) { var e = $('#' + x); return e ? e.value : null; };
     var o = atDepuisFormulaire(t);
+    if (t === 'ouverte' && q.attendu && typeof q.attendu === 'object' && o.attendu.elements)
+      o.attendu = Object.assign({}, q.attendu, o.attendu);
     var corps = {
       id: q.id || null, etape_id: q.etape_id || AT.etape.etape_id, type: t, ref: q.ref || null,
       enonce: val('atf-enonce'), propositions: o.propositions, attendu: o.attendu,
@@ -1656,10 +1713,380 @@ nav{display:none!important}
     }).catch(function (e) { z.innerHTML = '<p class="muted" style="padding:.5rem">' + echappe(e.message) + '</p>'; });
   }
 
+  /* ------------------------------------------------------------------
+   * Mode d'emploi de l'atelier de questions (15/11/2026)
+   * Panneau latéral, ouvert par le bouton « Mode d'emploi », par l'aide
+   * de chaque type de question et par les liens « Que faire ? » du contrôle.
+   * ------------------------------------------------------------------ */
+  var AT_GUIDE_TYPES = {
+    unique: {
+      t: 'Réponse unique', quand: 'une seule bonne réponse parmi plusieurs propositions (le QCM classique).',
+      saisie: '<li><b>Énoncé</b> : la question.</li><li><b>Propositions</b> : une par ligne, dans l’ordre où le stagiaire les verra.</li>' +
+              '<li><b>Numéro de la bonne réponse</b> : 1 pour la première ligne, 2 pour la deuxième…</li>',
+      ex: 'Énoncé : « Quel est le plafond du livret A ? »<br>Propositions :<br><code>[[livret_a_plafond]] €</code><br><code>10 000 €</code><br><code>Il n’y a pas de plafond</code><br>Numéro de la bonne réponse : <code>1</code>',
+      piege: 'Le chiffre « 10 000 » d’une mauvaise réponse est une valeur en dur : déclarez-le dans « Nombres qui ne sont pas des valeurs de source ».'
+    },
+    multiple: {
+      t: 'Réponses multiples', quand: 'plusieurs bonnes réponses ; le stagiaire doit cocher toutes les bonnes et seulement elles.',
+      saisie: '<li><b>Propositions</b> : une par ligne.</li><li><b>Numéros des bonnes réponses</b> : séparés par un point-virgule, par exemple <code>1;3</code>.</li>',
+      ex: 'Énoncé : « Quels produits sont des livrets réglementés ? »<br>Propositions : Livret A / Compte-titres / LDDS / PEA<br>Numéros des bonnes réponses : <code>1;3</code>',
+      piege: 'La réponse n’est juste que si toutes les bonnes cases sont cochées et aucune autre : il n’y a pas de points partiels sur ce type.'
+    },
+    numerique: {
+      t: 'Calcul', quand: 'le stagiaire tape un nombre (un montant, un taux, une durée) que l’outil calcule lui-même.',
+      saisie: '<li><b>Formule de la réponse</b> : composée avec les boutons ; l’outil affiche sa lecture en clair et le résultat du jour.</li>' +
+              '<li><b>Ou valeur fixe</b> : seulement si le résultat ne dépend d’aucune valeur datée (rare).</li>' +
+              '<li><b>Tolérance</b> : écart admis entre la réponse du stagiaire et le résultat, 0,01 par défaut (au centime près).</li>',
+      ex: 'Énoncé : « M. Fournier a un revenu moyen de 29 200 €. Quelle est son indemnité journalière ? »<br>Formule : <code>round(least(round(29200 / 730, 2), tns_presta_ij_max), 2)</code><br>Sous le champ, l’outil traduit la formule en français (« le plus petit de … , arrondi au centime ») et affiche le résultat du jour : 40.',
+      piege: 'Dans la formule, on écrit le nom de la valeur sans crochets (<code>tns_presta_ij_max</code>) ; dans un texte, avec crochets (<code>[[tns_presta_ij_max]]</code>). Le bouton « + Valeur datée » le fait pour vous.'
+    },
+    ouverte: {
+      t: 'Rédaction', quand: 'le stagiaire rédige une réponse libre.',
+      saisie: '<li><b>Éléments attendus</b> : un par ligne, sous la forme <code>libellé | expression admise | autre expression</code>. Les points sont répartis entre les éléments trouvés.</li>' +
+              '<li>Laissez ce champ vide si la rédaction doit être corrigée par un formateur : elle sort alors du barème automatique.</li>',
+      ex: 'Énoncé : « Citez les deux conditions du régime fiscal favorable de l’assurance vie. »<br>Éléments attendus :<br><code>Ancienneté | huit ans | 8 ans</code><br><code>Abattement | abattement annuel | abattement</code>',
+      piege: 'Pluriels, petites fautes de frappe, accents, majuscules et nombres en lettres (« huit » = 8) sont acceptés d’office. Les sigles et synonymes courants viennent du lexique des équivalences (partie 7) et s’affichent sous le champ. Ajoutez à la main les autres façons de le dire propres à la question, puis vérifiez avec « Essayer une réponse de stagiaire ».'
+    },
+    appariement: {
+      t: 'Appariement', quand: 'relier chaque élément de gauche à sa proposition de droite (définitions, correspondances, memory).',
+      saisie: '<li><b>Paires justes</b> : une par ligne, sous la forme <code>élément | proposition</code>, de 2 à 12 paires.</li>' +
+              '<li><b>Propositions en trop</b> (facultatif) : des leurres ajoutés à droite.</li><li><b>Points partiels</b> : au prorata des paires justes, ou tout ou rien.</li>',
+      ex: '<code>LEP | Livret d’épargne populaire</code><br><code>LDDS | Livret de développement durable et solidaire</code><br><code>PEA | Plan d’épargne en actions</code>',
+      piege: 'Saisissez les paires dans le bon sens : c’est l’outil qui mélange la colonne de droite. Pour un memory, ne mettez pas de proposition en trop.'
+    },
+    ordre: {
+      t: 'Remise en ordre', quand: 'remettre des étapes dans le bon ordre (une procédure, une chronologie).',
+      saisie: '<li><b>Éléments dans le BON ordre</b> : un par ligne. L’outil les mélange lui-même pour le stagiaire.</li><li><b>Points partiels</b> : au prorata des éléments bien placés, ou tout ou rien.</li>',
+      ex: '<code>Recueillir les besoins du client</code><br><code>Présenter la solution</code><br><code>Traiter les objections</code><br><code>Conclure la vente</code>',
+      piege: 'Ne mélangez pas vous-même : saisissez l’ordre juste. Si vous modifiez la liste, l’outil remélange à l’enregistrement.'
+    },
+    trous: {
+      t: 'Texte à trous', quand: 'compléter un texte, avec ou sans liste de choix.',
+      saisie: '<li><b>Énoncé</b> : écrivez <code>{{1}}</code>, <code>{{2}}</code>… à la place de chaque trou.</li>' +
+              '<li><b>Réponses admises</b> : une ligne par trou, dans l’ordre ; plusieurs réponses admises séparées par <code>|</code>.</li>' +
+              '<li><b>Choix proposés</b> (facultatif) : une ligne par trou, les choix séparés par <code>|</code>. Vide : le stagiaire tape sa réponse.</li>',
+      ex: 'Énoncé : « Le livret A est un produit d’épargne {{1}} dont les intérêts sont {{2}} d’impôt. »<br>Réponses admises :<br><code>réglementée | réglementé</code><br><code>exonérés | exempts</code><br>Choix proposés (facultatif), ligne 2 : <code>exonérés | soumis</code>',
+      piege: 'Il faut autant de lignes de réponses que de trous dans l’énoncé. Accents et majuscules ne comptent pas.'
+    }
+  };
+
+  var AT_GUIDE_CONTROLE = [
+    ['Énoncé manquant', 'Rédigez la question dans le champ « Énoncé ».'],
+    ['Source à renseigner', 'Indiquez d’où vient la règle : texte, article, date (par exemple « CGI art. 990 I »). Elle s’affiche avec l’explication.'],
+    ['Au moins deux propositions', 'Une question à choix demande au moins deux lignes de propositions.'],
+    ['Bonne réponse à choisir / Bonnes réponses à choisir', 'Indiquez le numéro (ou les numéros, séparés par ;) de la ligne juste. 1 = première ligne.'],
+    ['Ordre juste à indiquer pour chaque élément', 'Remise en ordre : saisissez au moins deux éléments, dans le bon ordre, puis enregistrez.'],
+    ['Éléments déjà dans le bon ordre : mélangez-les', 'Enregistrez à nouveau : l’outil remélange la liste présentée au stagiaire.'],
+    ['De 2 à 12 éléments à gauche', 'Appariement : entre 2 et 12 paires.'],
+    ['Au moins autant de propositions à droite', 'Chaque élément de gauche doit avoir sa proposition à droite.'],
+    ['Une paire juste pour chaque élément de gauche', 'Vérifiez que chaque ligne de paire contient bien le séparateur <code>|</code>.'],
+    ['Colonnes alignées sur la solution : mélangez la droite', 'Enregistrez à nouveau : l’outil remélange la colonne de droite.'],
+    ['Écrire {{1}}, {{2}}… dans l’énoncé', 'Texte à trous : remplacez chaque mot à trouver par <code>{{1}}</code>, <code>{{2}}</code>…'],
+    ['Une réponse pour chaque trou', 'Il faut une ligne de réponses admises par trou, dans l’ordre des trous.'],
+    ['Formule ou valeur attendue manquante', 'Calcul : composez une formule, ou à défaut saisissez une valeur fixe.'],
+    ['Valeur datée inconnue : [[…]]', 'Le nom entre crochets n’existe pas (faute de frappe, valeur retirée). Choisissez-le dans « Insérer une valeur datée » plutôt que de le taper.'],
+    ['Formule invalide', 'La formule ne se calcule pas : regardez la ligne « Se lit » sous la formule, elle indique ce qui bloque (parenthèse, opération, condition).'],
+    ['Valeurs en dur à lier ou à déclarer : …', 'Chaque nombre cité doit être soit un renvoi à une valeur datée (<code>[[…]]</code>), soit une donnée propre à l’exercice déclarée dans « Nombres qui ne sont pas des valeurs de source » (par exemple 29200 pour le revenu de M. Fournier, 3 pour « sur 3 mois »).'],
+    ['Action réservée : …', 'Votre compte n’a pas le rôle nécessaire. Un gestionnaire l’attribue dans Gestion des groupes › Rôles de production.']
+  ];
+
+  function atGuideHtml() {
+    var types = Object.keys(AT_GUIDE_TYPES).map(function (k) {
+      var g = AT_GUIDE_TYPES[k];
+      return '<section id="ag-type-' + k + '" class="ag-type"><h4>' + g.t + '</h4>' +
+        '<p><b>À utiliser pour</b> ' + g.quand + '</p><p><b>Ce que vous saisissez</b></p><ul>' + g.saisie + '</ul>' +
+        '<div class="ag-exemple"><b>Exemple</b><br>' + g.ex + '</div>' +
+        '<p class="ag-piege"><b>Attention</b> — ' + g.piege + '</p></section>';
+    }).join('');
+    return '' +
+      '<nav class="ag-sommaire" aria-label="Sommaire du mode d’emploi"><b>Sommaire</b><ol>' +
+        '<li><a href="#ag-premiers">Premiers pas en 2 minutes</a></li><li><a href="#ag-roles">Qui fait quoi</a></li>' +
+        '<li><a href="#ag-circuit">Le circuit d’une question</a></li><li><a href="#ag-creer">Créer une question pas à pas</a></li>' +
+        '<li><a href="#ag-types">Les 7 types de questions</a></li><li><a href="#ag-valeurs">Les valeurs datées</a></li><li><a href="#ag-lexique">Le lexique des équivalences</a></li>' +
+        '<li><a href="#ag-formules">Les formules de calcul</a></li><li><a href="#ag-controle">Le contrôle : messages et solutions</a></li>' +
+        '<li><a href="#ag-valider">Valider, signer, publier</a></li><li><a href="#ag-reprise">Reprendre les questions déjà en ligne</a></li>' +
+        '<li><a href="#ag-faq">Questions fréquentes</a></li></ol></nav>' +
+
+      '<section id="ag-premiers"><h3>1. Premiers pas en 2 minutes</h3>' +
+        '<p>L’atelier sert à écrire les questions des QCM, exercices et cas pratiques d’un module, à les faire relire, puis à les mettre en ligne. ' +
+        'Une question n’arrive chez les stagiaires qu’après <b>trois regards</b> : l’auteur, le service pédagogique, la direction.</p>' +
+        '<ol class="ag-etapes"><li>Choisissez le <b>module</b>, puis cliquez sur l’<b>étape</b> (le QCM, l’exercice…).</li>' +
+        '<li>Choisissez le <b>type</b> de question et cliquez sur <b>Nouvelle question</b>.</li>' +
+        '<li>Remplissez l’énoncé, les réponses, l’explication et la source.</li>' +
+        '<li>Partout où vous citeriez un montant, un taux, un âge ou un délai réglementaire, <b>insérez la valeur datée</b> au lieu de taper le chiffre.</li>' +
+        '<li>Cliquez sur <b>Enregistrer</b> et lisez la ligne <b>Contrôle</b> : tant qu’elle n’affiche pas « OK », corrigez ce qu’elle signale.</li>' +
+        '<li>Cliquez sur <b>Transmettre pour validation</b>. La suite se passe dans « Mes validations » du service pédagogique puis de la direction.</li></ol>' +
+        '<p class="ag-astuce">Pourquoi les valeurs datées ? Quand le SMIC, le PASS ou un plafond change, toutes les questions qui les citent se mettent à jour seules, ' +
+        'y compris les corrigés. Un chiffre tapé en dur, lui, devient faux sans prévenir.</p></section>' +
+
+      '<section id="ag-roles"><h3>2. Qui fait quoi</h3><table class="at-table"><thead><tr><th>Rôle</th><th>Ce qu’il fait dans l’atelier</th></tr></thead><tbody>' +
+        '<tr><td><b>Auteur</b></td><td>Crée et modifie les questions, les transmet pour validation, supprime ses brouillons.</td></tr>' +
+        '<tr><td><b>Service pédagogique</b></td><td>Peut aussi rédiger. Relit le fond et la forme, valide ou renvoie à l’auteur avec un commentaire.</td></tr>' +
+        '<tr><td><b>Direction</b></td><td>Signe les questions validées, ou les renvoie. Peut publier.</td></tr>' +
+        '<tr><td><b>Gestionnaire</b></td><td>Attribue les rôles (Gestion des groupes › Rôles de production) et peut publier les questions signées.</td></tr>' +
+        '</tbody></table><p>Une même personne peut cumuler les rôles. Vos rôles sont rappelés en haut de chaque écran de l’atelier.</p></section>' +
+
+      '<section id="ag-circuit"><h3>3. Le circuit d’une question</h3>' +
+        '<div class="ag-circuit">' + ['brouillon', 'a_valider', 'a_signer', 'signee', 'publiee'].map(function (s) { return atStatut(s); }).join('<span aria-hidden="true">→</span>') + '</div>' +
+        '<ul><li><b>Brouillon</b> : en cours d’écriture, invisible des stagiaires. L’auteur clique sur « Transmettre pour validation » quand le contrôle est OK.</li>' +
+        '<li><b>À valider</b> : le service pédagogique relit, puis « Valider » ou « Renvoyer à l’auteur ».</li>' +
+        '<li><b>À signer</b> : la direction relit, puis « Signer » ou « Renvoyer à l’auteur ».</li>' +
+        '<li><b>Signée — à publier</b> : prête. La direction ou un gestionnaire clique sur « Publier dans le DA » au niveau de l’étape : toutes les questions signées partent ensemble.</li>' +
+        '<li><b>Publiée</b> : visible des stagiaires dès leur prochaine séance.</li>' +
+        '<li>' + atStatut('a_reprendre') + ' : renvoyée avec un commentaire (visible dans l’historique en bas de la fiche). L’auteur corrige, enregistre et transmet à nouveau.</li></ul>' +
+        '<p class="ag-astuce"><b>Toute modification ramène la question en brouillon</b>, même après validation : elle doit repasser par les relectures. ' +
+        'Une question déjà publiée reste en ligne dans sa version précédente tant que la nouvelle n’est pas publiée.</p></section>' +
+
+      '<section id="ag-creer"><h3>4. Créer une question pas à pas</h3><ol class="ag-etapes">' +
+        '<li><b>Énoncé</b> : la question telle que le stagiaire la lira. Les données propres à l’exercice (le revenu de M. Fournier, une durée de 30 jours) s’écrivent normalement ; les valeurs réglementaires s’insèrent comme valeurs datées.</li>' +
+        '<li><b>Les réponses</b> : les champs changent selon le type (voir la partie 5). Le bouton « Aide : … » à côté du titre de la fiche ouvre directement l’aide du type.</li>' +
+        '<li><b>Points</b> : le poids de la question dans la note (1 par défaut). Pour l’appariement, la remise en ordre et le texte à trous, choisissez aussi points partiels ou tout ou rien.</li>' +
+        '<li><b>Explication</b> : ce que le stagiaire lit après avoir répondu. Montrez le raisonnement, pas seulement le résultat ; elle peut contenir des valeurs datées.</li>' +
+        '<li><b>Source</b> : obligatoire. Le texte qui fonde la réponse (article, décret, barème, date).</li>' +
+        '<li><b>Thème</b> : sert au bilan par thème des stagiaires. Gardez les mêmes mots d’une question à l’autre.</li>' +
+        '<li><b>Groupe et consigne</b> (facultatifs) : pour rassembler plusieurs questions sous une même consigne, par exemple un cas commun.</li>' +
+        '<li><b>Nombres qui ne sont pas des valeurs de source</b> : listez, séparés par ;, les chiffres propres à l’exercice (29200; 30). Le contrôle les accepte et les relecteurs les voient.</li>' +
+        '<li><b>Enregistrer</b>, lire le contrôle et l’<b>aperçu à ce jour</b> (la question telle qu’elle s’affichera aujourd’hui, valeurs remplacées), puis <b>Transmettre</b>.</li></ol></section>' +
+
+      '<section id="ag-types"><h3>5. Les 7 types de questions</h3>' + types + '</section>' +
+
+      '<section id="ag-valeurs"><h3>6. Les valeurs datées</h3>' +
+        '<p>Une valeur datée est un chiffre réglementaire tenu à jour par le centre : SMIC, PASS, plafonds, taux, âges, délais. Chacune a un nom, par exemple <code>livret_a_plafond</code>.</p>' +
+        '<ul><li><b>Pour l’insérer</b> : cliquez dans le champ voulu, ouvrez « Insérer une valeur datée » sous le formulaire, cherchez par un mot (smic, livret, plafond…) et cliquez sur la valeur. Elle s’insère à l’endroit du curseur.</li>' +
+        '<li><b>Dans un texte</b> (énoncé, propositions, réponses admises, explication) elle s’écrit entre doubles crochets : <code>[[livret_a_plafond]]</code>. Le stagiaire lit « 22 950 ».</li>' +
+        '<li><b>Dans une formule</b> elle s’écrit sans crochets : <code>livret_a_plafond * 0.5</code>.</li>' +
+        '<li><b>Un petit calcul dans un texte</b> est possible entre crochets : <code>[[smic_mensuel_brut * 3]]</code>.</li>' +
+        '<li><b>Les taux</b> sont enregistrés en décimal (0,017 pour 1,70 %). Pour les afficher en pourcentage dans un texte, écrivez <code>[[arbitrage_taux_livret_a * 100]] %</code> (le stagiaire lit « 1,7 % »).</li>' +
+        '<li><b>À quelle date ?</b> La valeur affichée et le corrigé sont ceux en vigueur à la date de la séance du stagiaire : une session de janvier lit les valeurs de janvier.</li></ul>' +
+        '<p class="ag-astuce">Une valeur manque dans la liste ? Demandez au service pédagogique de créer la valeur avant d’écrire la question, plutôt que de taper le chiffre.</p></section>' +
+
+      '<section id="ag-lexique"><h3>7. Le lexique des équivalences</h3>' +
+        '<p>Pour les questions de type <b>Rédaction</b>, la correction automatique cherche dans la réponse du stagiaire les expressions que vous avez admises. Elle est déjà tolérante :</p>' +
+        '<ul><li>les <b>pluriels et terminaisons</b> (« abattement » trouve « abattements ») ;</li>' +
+        '<li>une <b>petite faute de frappe</b> dans un mot long ;</li>' +
+        '<li>les <b>accents, majuscules, traits d’union et la ponctuation</b> ;</li>' +
+        '<li>les <b>nombres en lettres</b> : « huit ans » = « 8 ans », « soixante-dix » = 70 ;</li>' +
+        '<li>les <b>montants</b> écrits avec ou sans espace, avec « € » ou « euros ».</li></ul>' +
+        '<p>Ce qu’elle ne peut pas deviner, ce sont les <b>sigles et les synonymes</b>. C’est le rôle du <b>lexique des équivalences</b> (Gestion des modules › Lexique des équivalences) : ' +
+        'une ligne y déclare des expressions de même sens, par exemple <code>assurance vie = AV</code> ou <code>prélèvement forfaitaire unique = PFU = flat tax</code>. ' +
+        'Chaque ligne s’applique à <b>toutes les questions</b> du centre, dès son enregistrement.</p>' +
+        '<ul><li><b>Qui le tient ?</b> Le service pédagogique et la direction. Un auteur qui a besoin d’une équivalence la leur demande.</li>' +
+        '<li><b>Dans la fiche</b> d’une question Rédaction, l’encadré « Variantes acceptées grâce au lexique » montre, pour chaque élément, ce que le lexique ajoute. ' +
+        '<b>Décochez</b> une variante pour la refuser sur cette question seulement (par exemple si « IR » n’a pas le sens attendu dans ce contexte). Les relecteurs voient ce choix.</li>' +
+        '<li><b>« Essayer une réponse de stagiaire »</b> : tapez une réponse comme l’écrirait un stagiaire et cliquez sur « Essayer » ; l’outil affiche la note et les éléments trouvés ou manquants, exactement comme à la remise de la copie.</li>' +
+        '<li><b>Prudence</b> : n’ajoutez au lexique que des expressions de sens strictement identique dans tous les modules. Un synonyme approximatif ferait accepter de mauvaises réponses partout.</li></ul>' +
+        '<p class="ag-astuce">Le lexique ne change pas les copies déjà remises : il s’applique aux réponses remises après l’enregistrement.</p></section>' +
+
+      '<section id="ag-formules"><h3>8. Les formules de calcul</h3>' +
+        '<p>Pour une question de type Calcul, la formule produit la bonne réponse. Composez-la avec les boutons ; sous le champ, la ligne <b>« Se lit »</b> la traduit en français et donne le résultat du jour. Si elle est rouge, la formule est à corriger.</p>' +
+        '<table class="at-table"><thead><tr><th>Bouton</th><th>Ce qu’il écrit</th><th>Exemple</th></tr></thead><tbody>' +
+        '<tr><td>+ Valeur datée</td><td>le nom d’une valeur</td><td><code>smic_mensuel_brut</code></td></tr>' +
+        '<tr><td>× ÷ + −</td><td><code>* / + -</code></td><td><code>pass * 0.08</code> = 8 % du PASS</td></tr>' +
+        '<tr><td>( )</td><td>des parenthèses</td><td><code>(30 - tns_presta_ij_carence) * 40</code></td></tr>' +
+        '<tr><td>Arrondir au centime</td><td>entoure la formule de <code>round(… , 2)</code></td><td><code>round(pass / 12, 2)</code></td></tr>' +
+        '<tr><td>Si … alors … sinon</td><td><code>case when … then … else … end</code></td><td><code>case when 4000 &lt; tns_presta_ij_seuil_zero then 0 else 4000 / 730 end</code></td></tr>' +
+        '<tr><td>&lt; &gt; ≥</td><td>une comparaison, dans une condition</td><td><code>29200 &gt;= tns_presta_ij_seuil_zero</code></td></tr>' +
+        '<tr><td>PASS d’une année</td><td><code>pass_annee(-1)</code></td><td>PASS de l’année précédant la séance ; <code>pass_annee(0)</code> = l’année de la séance</td></tr>' +
+        '</tbody></table>' +
+        '<ul><li>Les nombres se tapent au clavier, avec un point ou une virgule (la virgule est convertie).</li>' +
+        '<li>Le plus petit / le plus grand de deux montants : <code>least(a, b)</code> / <code>greatest(a, b)</code>, utile pour un plafond.</li>' +
+        '<li>Moyenne des 3 derniers PASS : <code>(pass_annee(-1) + pass_annee(-2) + pass_annee(-3)) / 3</code>.</li>' +
+        '<li>Les chiffres de l’énoncé utilisés dans la formule (29200, 730…) se déclarent dans « Nombres qui ne sont pas des valeurs de source ».</li>' +
+        '<li><b>Tolérance</b> : 0,01 accepte une réponse au centime près ; mettez 1 pour un résultat arrondi à l’euro.</li></ul></section>' +
+
+      '<section id="ag-controle"><h3>9. Le contrôle : messages et solutions</h3>' +
+        '<p>Après chaque enregistrement, l’outil vérifie la question. Tant que le contrôle n’affiche pas <span class="at-ctl ok">OK</span>, elle ne peut pas être transmise ni validée.</p>' +
+        '<table class="at-table"><thead><tr><th>Message</th><th>Que faire</th></tr></thead><tbody>' +
+        AT_GUIDE_CONTROLE.map(function (m) { return '<tr><td><b>' + echappe(m[0]) + '</b></td><td>' + m[1] + '</td></tr>'; }).join('') +
+        '</tbody></table></section>' +
+
+      '<section id="ag-valider"><h3>10. Valider, signer, publier</h3>' +
+        '<p>Les questions qui vous attendent sont dans <b>Mes validations</b>. Ouvrez chacune et vérifiez :</p>' +
+        '<ul class="ag-coche"><li>l’<b>aperçu à ce jour</b> : la question se lit bien, les valeurs affichées sont les bonnes ;</li>' +
+        '<li>la <b>réponse attendue</b> est juste, et l’explication la justifie ;</li>' +
+        '<li>la <b>source</b> est précise et à jour ;</li>' +
+        '<li>les <b>nombres déclarés</b> sont bien des données de l’exercice, pas des valeurs réglementaires tapées en dur ;</li>' +
+        '<li>les mauvaises réponses sont plausibles mais clairement fausses.</li></ul>' +
+        '<p>Puis cliquez sur <b>Valider</b> (service pédagogique) ou <b>Signer</b> (direction). Pour renvoyer, écrivez d’abord ce qu’il faut reprendre dans « Commentaire », puis cliquez sur <b>Renvoyer à l’auteur</b>.</p>' +
+        '<p>Une fois les questions signées, ouvrez l’étape et cliquez sur <b>Publier dans le DA</b>. L’outil refait le contrôle de chaque question avant de publier ; si une valeur datée a disparu entre-temps, la publication s’arrête et nomme la question.</p></section>' +
+
+      '<section id="ag-reprise"><h3>11. Reprendre les questions déjà en ligne</h3>' +
+        '<p>Pour corriger une question déjà publiée, ouvrez l’étape et cliquez sur <b>Reprendre les questions déjà en ligne</b>. Elles arrivent en brouillon dans l’atelier, avec leurs réponses et leur corrigé. ' +
+        'Le contrôle signale alors les chiffres écrits en dur : remplacez-les par des valeurs datées, puis faites suivre le circuit. La version en ligne reste visible jusqu’à la nouvelle publication.</p></section>' +
+
+      '<section id="ag-faq"><h3>12. Questions fréquentes</h3><dl class="ag-faq">' +
+        '<dt>Je ne vois pas le bouton « Nouvelle question ».</dt><dd>Il faut le rôle auteur ou service pédagogique. Demandez-le à un gestionnaire.</dd>' +
+        '<dt>J’ai modifié une question validée : elle est repassée en brouillon.</dt><dd>C’est voulu : toute modification doit être relue. Transmettez-la à nouveau.</dd>' +
+        '<dt>Le stagiaire voit-il le numéro de la bonne réponse ou l’ordre juste ?</dt><dd>Non. L’outil mélange les remises en ordre et les appariements, et la correction se fait sur le serveur.</dd>' +
+        '<dt>La valeur affichée dans l’aperçu n’est pas celle que j’attendais.</dt><dd>L’aperçu montre la valeur en vigueur aujourd’hui. Si elle est fausse, c’est la valeur datée qu’il faut corriger (service pédagogique), pas la question.</dd>' +
+        '<dt>Puis-je supprimer une question ?</dt><dd>Un brouillon jamais publié, oui (bouton « Supprimer »). Une question déjà publiée ne se supprime pas depuis l’atelier : reprenez-la pour la corriger (partie 11).</dd>' +
+        '<dt>Où voir qui a fait quoi ?</dt><dd>En bas de chaque fiche, l’<b>historique</b> liste les créations, modifications, validations, signatures et renvois, avec les commentaires.</dd>' +
+      '</dl></section>';
+  }
+
+  function atGuideOuvrir(cible) {
+    var p = $('#at-guide');
+    if (!p) {
+      p = document.createElement('div'); p.id = 'at-guide'; p.hidden = true;
+      p.innerHTML = '<div class="ag-fond" data-fermer="1"></div><aside class="ag-panneau" role="dialog" aria-modal="true" aria-labelledby="ag-titre" tabindex="-1">' +
+        '<div class="ag-tete"><h2 id="ag-titre">Mode d’emploi — Atelier de questions</h2><button type="button" class="ag-fermer" data-fermer="1" aria-label="Fermer le mode d’emploi">×</button></div>' +
+        '<div class="ag-corps" id="ag-corps"></div></aside>';
+      document.body.appendChild(p);
+      p.addEventListener('click', function (ev) {
+        if (ev.target.closest('[data-fermer]')) { atGuideFermer(); return; }
+        var a = ev.target.closest('a[href^="#ag-"]');
+        if (a) { ev.preventDefault(); var s = document.getElementById(a.getAttribute('href').slice(1)); if (s) s.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+      });
+      document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !p.hidden) atGuideFermer(); });
+    }
+    $('#ag-corps').innerHTML = atGuideHtml();
+    AT.focusAvantGuide = document.activeElement;
+    p.hidden = false; document.body.classList.add('ag-ouvert');
+    var panneau = p.querySelector('.ag-panneau'); panneau.focus();
+    var s = cible && document.getElementById(cible);
+    if (s) { s.scrollIntoView({ block: 'start' }); s.classList.add('ag-vise'); setTimeout(function () { s.classList.remove('ag-vise'); }, 1800); }
+    else $('#ag-corps').scrollTop = 0;
+  }
+  function atGuideFermer() {
+    var p = $('#at-guide'); if (!p) return;
+    p.hidden = true; document.body.classList.remove('ag-ouvert');
+    if (AT.focusAvantGuide && AT.focusAvantGuide.focus) AT.focusAvantGuide.focus();
+  }
+  /* Bouton permanent en haut de l'atelier, et premiers pas à la première visite. */
+  function atGuideBouton() {
+    var carte = $('#at-carte');
+    if (carte && !$('#at-guide-bouton')) {
+      var b = document.createElement('button'); b.type = 'button'; b.id = 'at-guide-bouton'; b.className = 'ag-bouton';
+      b.innerHTML = '<span aria-hidden="true">?</span> Mode d’emploi'; b.setAttribute('data-guide', 'ag-premiers');
+      carte.insertBefore(b, carte.firstChild);
+    }
+    var vu = false;
+    try { vu = localStorage.getItem('atelier_guide_vu') === '1'; } catch (e) { vu = true; }
+    if (!vu && !$('#ag-bienvenue')) {
+      var d = document.createElement('div'); d.id = 'ag-bienvenue'; d.className = 'ag-bienvenue';
+      d.innerHTML = '<b>Première visite dans l’atelier ?</b> Le mode d’emploi explique en 2 minutes comment créer une question, la faire valider et la publier. ' +
+        '<button type="button" class="btn" data-guide="ag-premiers">Lire le mode d’emploi</button> <button type="button" class="btn btn-secondaire" id="ag-plus-tard">Plus tard</button>';
+      carte.insertBefore(d, $('#at-contenu'));
+      $('#ag-plus-tard').addEventListener('click', function () { atGuideVu(); });
+    }
+  }
+  function atGuideVu() {
+    try { localStorage.setItem('atelier_guide_vu', '1'); } catch (e) { /* stockage indisponible : sans conséquence */ }
+    var d = $('#ag-bienvenue'); if (d) d.remove();
+  }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('[data-guide]'); if (!b) return;
+    ev.preventDefault(); ev.stopPropagation(); atGuideVu(); atGuideOuvrir(b.getAttribute('data-guide'));
+  }, true);
+
+
+  /* --- Rédaction : variantes du lexique (cochées = acceptées) et essai d'une réponse --- */
+  function atBrancherLexique(q) {
+    var champ = $('#atf-elements'), zone = $('#at-variantes'), minuteur = null;
+    if (!champ || !zone) return;
+    AT.exclus = AT.exclus || {};
+    function elements() { return atDepuisFormulaire('ouverte').attendu.elements || []; }
+    function dessiner() {
+      clearTimeout(minuteur);
+      minuteur = setTimeout(function () {
+        var els = elements();
+        if (!els.length) { zone.innerHTML = 'Saisissez les éléments attendus : les équivalences du lexique s’affichent ici.'; return; }
+        atAppel('variantes', { p_elements: els }).then(function (r) {
+          var lignes = (r || []).filter(function (x) { return x.variantes && x.variantes.length; });
+          if (!lignes.length) { zone.innerHTML = 'Aucune équivalence du lexique ne s’applique à ces éléments.'; return; }
+          zone.innerHTML = '<p style="margin:.2rem 0 .4rem">Décochez une variante pour la refuser sur cette question seulement. Les relecteurs voient ce choix.</p>' +
+            lignes.map(function (x) {
+              var ex = AT.exclus[x.libelle] || [];
+              return '<div class="at-var-ligne"><b>' + echappe(x.libelle) + '</b> : ' + x.variantes.map(function (v) {
+                return '<label class="at-var"><input type="checkbox" data-lib="' + echappe(x.libelle) + '" data-var="' + echappe(v) + '"' +
+                  (ex.indexOf(v) >= 0 ? '' : ' checked') + (champ.disabled ? ' disabled' : '') + '> ' + echappe(v) + '</label>';
+              }).join(' ') + '</div>';
+            }).join('');
+        }).catch(function (e) { zone.textContent = e.message; });
+      }, 400);
+    }
+    zone.addEventListener('change', function (ev) {
+      var c = ev.target; if (!c.dataset || !c.dataset.var) return;
+      var l = AT.exclus[c.dataset.lib] = AT.exclus[c.dataset.lib] || [];
+      var i = l.indexOf(c.dataset.var);
+      if (c.checked && i >= 0) l.splice(i, 1);
+      if (!c.checked && i < 0) l.push(c.dataset.var);
+    });
+    champ.addEventListener('input', dessiner);
+    $('#at-essayer').addEventListener('click', function () {
+      var res = $('#at-essai-resultat'), attendu = atDepuisFormulaire('ouverte').attendu;
+      if (q.attendu && typeof q.attendu === 'object' && attendu.elements) attendu = Object.assign({}, q.attendu, attendu);
+      if (!attendu.elements) { res.innerHTML = '<span class="at-ctl ko">Saisissez d’abord les éléments attendus.</span>'; return; }
+      atAppel('essayer', { p_texte: $('#at-essai').value, p_attendu: attendu }).then(function (r) {
+        res.innerHTML = '<p>Résultat : <b>' + echappe(String(r.obtenus)) + ' / ' + echappe(String(r.sur)) + '</b></p>' +
+          '<p><span class="at-ctl ok">Trouvé</span> : ' + ((r.trouves || []).map(echappe).join(', ') || '—') + '</p>' +
+          '<p><span class="at-ctl ko">Manquant</span> : ' + ((r.manquants || []).map(echappe).join(', ') || '—') + '</p>';
+      }).catch(function (e) { res.innerHTML = '<span class="at-ctl ko">' + echappe(e.message) + '</span>'; });
+    });
+    dessiner();
+  }
+
+  /* --- Lexique des équivalences --- */
+  function atLexiqueVue() {
+    var peut = atA('pedagogique') || atA('direction');
+    $('#at-contenu').innerHTML = '<h2>Lexique des équivalences</h2><p class="sub">Expressions que la correction automatique des rédactions accepte ' +
+      'les unes pour les autres, dans toutes les questions du centre (par exemple « assurance vie » = « AV »). ' +
+      'Pluriels, petites fautes de frappe, accents et nombres en lettres sont déjà acceptés : inutile de les ajouter ici. ' +
+      '<button type="button" class="ag-lien" data-guide="ag-lexique">En savoir plus</button></p>' + atBandeauRoles() +
+      (peut ? '<div class="at-formule" id="lx-form"><b id="lx-titre">Nouvelle équivalence</b>' +
+        '<div class="at-grille" style="margin-top:.5rem"><div><label for="lx-expr">Expressions équivalentes, une par ligne</label>' +
+        '<textarea id="lx-expr" placeholder="assurance vie&#10;AV"></textarea><p class="at-aide">Au moins deux. Le sens doit être strictement le même dans tous les modules.</p></div>' +
+        '<div><label for="lx-com">Commentaire (facultatif)</label><input id="lx-com" placeholder="Pourquoi, ou dans quel contexte">' +
+        '<label class="at-var" style="margin-top:.8rem"><input type="checkbox" id="lx-actif" checked> Équivalence active</label></div></div>' +
+        '<div class="at-boutons"><button class="btn" id="lx-enreg">Enregistrer</button><button class="btn btn-secondaire" id="lx-annuler" hidden>Annuler</button></div></div>'
+        : '<p class="muted">Seuls le service pédagogique et la direction modifient le lexique.</p>') +
+      '<div id="lx-liste"><div class="chargement">Chargement…</div></div>';
+    var edition = null;
+    function charger() {
+      appeler('lms', 'lexique_lister', {}).then(function (r) {
+        r = r || [];
+        $('#lx-liste').innerHTML = r.length ? '<table class="at-table"><thead><tr><th>Expressions équivalentes</th><th>Commentaire</th><th>État</th><th>Modifiée</th>' +
+          (peut ? '<th></th>' : '') + '</tr></thead><tbody>' + r.map(function (l) {
+            return '<tr><td>' + l.expressions.map(function (e) { return '<b>' + echappe(e) + '</b>'; }).join(' = ') + '</td><td>' + echappe(l.commentaire || '') + '</td>' +
+              '<td>' + (l.actif ? '<span class="at-ctl ok">Active</span>' : '<span class="muted">Inactive</span>') + '</td>' +
+              '<td class="muted">' + new Date(l.modifie_le).toLocaleDateString('fr-FR') + (l.modifie_par ? ' · ' + echappe(l.modifie_par) : '') + '</td>' +
+              (peut ? '<td style="white-space:nowrap"><button class="ag-lien" data-modif="' + l.id + '">Modifier</button> <button class="ag-lien" data-suppr="' + l.id + '">Supprimer</button></td>' : '') + '</tr>';
+          }).join('') + '</tbody></table>' : '<p class="muted">Le lexique est vide.</p>';
+        if (!peut) return;
+        Array.prototype.forEach.call($('#lx-liste').querySelectorAll('[data-modif]'), function (b) {
+          b.addEventListener('click', function () {
+            var l = r.filter(function (x) { return String(x.id) === b.dataset.modif; })[0];
+            edition = l.id; $('#lx-titre').textContent = 'Modifier l’équivalence';
+            $('#lx-expr').value = l.expressions.join('\n'); $('#lx-com').value = l.commentaire || ''; $('#lx-actif').checked = l.actif;
+            $('#lx-annuler').hidden = false; $('#lx-form').scrollIntoView({ block: 'center' }); $('#lx-expr').focus();
+          });
+        });
+        Array.prototype.forEach.call($('#lx-liste').querySelectorAll('[data-suppr]'), function (b) {
+          b.addEventListener('click', function () {
+            if (!confirm('Supprimer cette équivalence ? Les rédactions corrigées ensuite ne l’accepteront plus.')) return;
+            appeler('lms', 'lexique_supprimer', { p_id: +b.dataset.suppr }).then(function () { atMsg('Équivalence supprimée.', 'ok'); charger(); })
+              .catch(function (e) { atMsg(e.message); });
+          });
+        });
+      }).catch(function (e) { $('#lx-liste').innerHTML = ''; atMsg(e.message); });
+    }
+    function vider() { edition = null; $('#lx-titre').textContent = 'Nouvelle équivalence'; $('#lx-expr').value = ''; $('#lx-com').value = ''; $('#lx-actif').checked = true; $('#lx-annuler').hidden = true; }
+    if (peut) {
+      $('#lx-annuler').addEventListener('click', vider);
+      $('#lx-enreg').addEventListener('click', function () {
+        var b = this; b.disabled = true;
+        appeler('lms', 'lexique_enregistrer', { p_id: edition, p_expressions: atLignes($('#lx-expr').value), p_commentaire: $('#lx-com').value, p_actif: $('#lx-actif').checked })
+          .then(function () { b.disabled = false; atMsg('Équivalence enregistrée : elle s’applique dès maintenant aux rédactions remises.', 'ok'); vider(); charger(); })
+          .catch(function (e) { b.disabled = false; atMsg(e.message); });
+      });
+    }
+    charger();
+  }
+
   /* --- Mes validations --- */
   function atValidations() {
     AT.retour = atValidations;
-    $('#at-contenu').innerHTML = '<h2>Mes validations</h2><p class="sub">Les questions qui attendent une décision de votre part, selon vos rôles.</p>' +
+    $('#at-contenu').innerHTML = '<h2>Mes validations</h2><p class="sub">Les questions qui attendent une décision de votre part, selon vos rôles. <button type="button" class="ag-lien" data-guide="ag-valider">Que vérifier avant de valider ?</button></p>' +
       atBandeauRoles() + '<div id="at-files"><div class="chargement">Chargement…</div></div>';
     atAppel('mes_validations').then(function (r) {
       r = r || [];
