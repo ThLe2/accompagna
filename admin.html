@@ -208,6 +208,16 @@ nav{display:none!important}
 .at-statut.brouillon{background:#EEF1F6}.at-statut.a_valider{background:#FFF4D6}.at-statut.a_signer{background:#FFE9D2}
 .at-statut.signee{background:#E3F0FF}.at-statut.publiee{background:#E3F4E8}.at-statut.a_reprendre{background:#FDE7E7}
 .at-ctl.ok{color:#1B7F45;font-weight:600}.at-ctl.ko{color:#B42318}
+/* Contrôle d'ensemble d'une étape (brique 2, 19/11/2026) */
+.ce-badge{display:inline-block;padding:.1rem .5rem;border-radius:999px;font-size:.76rem;font-weight:600;white-space:nowrap;margin:0 .2rem .15rem 0}
+.ce-badge.alerte{background:#FDE7E7;color:#B42318}.ce-badge.attention{background:#FFF4D6;color:#8A5A00}.ce-badge.ok{background:#E3F4E8;color:#1B7F45}
+.ce-panneau{border:1px solid var(--trame);border-radius:8px;padding:.7rem .9rem;margin:.8rem 0 1rem;background:#FAFBFD}
+.ce-panneau h3{margin:0 0 .5rem}
+.ce-ligne{border-left:4px solid var(--trame);padding:.35rem .7rem;margin:.4rem 0;background:#fff;border-radius:0 6px 6px 0}
+.ce-ligne.alerte{border-left-color:#B42318}.ce-ligne.attention{border-left-color:#D99A00}.ce-ligne.ok{border-left-color:#1B7F45}.ce-ligne.info{border-left-color:var(--rose)}
+.ce-ligne b{display:block;font-size:.88rem}.ce-ligne p{margin:.15rem 0 0;font-size:.86rem}
+.ce-ligne details{margin-top:.25rem;font-size:.8rem}.ce-ligne details summary{cursor:pointer;color:var(--prune-fonce)}
+.ce-ligne details code{display:inline-block;margin:.1rem .3rem .1rem 0}
 .at-grille{display:grid;grid-template-columns:1fr 1fr;gap:.8rem 1rem}
 .at-grille .large{grid-column:1/-1}
 @media (max-width:760px){.at-grille{grid-template-columns:1fr}}
@@ -1352,11 +1362,14 @@ body.ag-ouvert{overflow:hidden}
     z.innerHTML = '<div class="chargement">Chargement…</div>';
     atAppel('etat_da', { p_da_id: AT.daId }).then(function (r) {
       if (!r || !r.length) { z.innerHTML = '<p class="muted">Ce module n’a pas d’étape à questions.</p>'; return; }
-      z.innerHTML = '<table class="at-table"><thead><tr><th>Étape</th><th>En ligne</th><th>Brouillons</th><th>À valider</th><th>À signer</th><th>Signées</th><th>À reprendre</th></tr></thead><tbody>' +
+      z.innerHTML = '<table class="at-table"><thead><tr><th>Étape</th><th>En ligne</th><th>Brouillons</th><th>À valider</th><th>À signer</th><th>Signées</th><th>À reprendre</th>' +
+        '<th>Contrôle d’ensemble <button type="button" class="ag-lien" data-guide="ag-ensemble">?</button></th></tr></thead><tbody>' +
         r.map(function (e) {
           return '<tr class="clic" data-etape="' + e.etape_id + '"><td><b>' + echappe(e.titre) + '</b><br><span class="muted">' + echappe(e.etape_ref) + '</span></td>' +
-            '<td>' + e.publiees_en_base + '</td><td>' + e.brouillon + '</td><td>' + e.a_valider + '</td><td>' + e.a_signer + '</td><td>' + e.signee + '</td><td>' + e.a_reprendre + '</td></tr>';
+            '<td>' + e.publiees_en_base + '</td><td>' + e.brouillon + '</td><td>' + e.a_valider + '</td><td>' + e.a_signer + '</td><td>' + e.signee + '</td><td>' + e.a_reprendre + '</td>' +
+            '<td data-ce="' + e.etape_id + '"><span class="muted">…</span></td></tr>';
         }).join('') + '</tbody></table>';
+      atControleDa(z);
       Array.prototype.forEach.call(z.querySelectorAll('tr[data-etape]'), function (tr) {
         tr.addEventListener('click', function () {
           var e = r.filter(function (x) { return String(x.etape_id) === tr.dataset.etape; })[0];
@@ -1371,8 +1384,9 @@ body.ag-ouvert{overflow:hidden}
     var e = AT.etape; if (garderMessage !== true) atMsg('');
     $('#at-contenu').innerHTML = '<button class="at-retour" id="at-retour">← Étapes du module</button>' +
       '<h2>' + echappe(e.titre) + '</h2><p class="muted">' + echappe(e.etape_ref) + '</p>' + atBandeauRoles() +
-      '<div class="at-boutons" id="at-actions-etape"></div><div id="at-liste"><div class="chargement">Chargement…</div></div>';
+      '<div class="at-boutons" id="at-actions-etape"></div><div id="at-ctl-etape"></div><div id="at-liste"><div class="chargement">Chargement…</div></div>';
     $('#at-retour').addEventListener('click', atAccueil);
+    AT.ctlEtape = null; atControleEtape(e.etape_id);
     atAppel('liste', { p_etape_id: e.etape_id }).then(function (qs) {
       qs = qs || [];
       var signees = qs.filter(function (q) { return q.statut === 'signee'; }).length;
@@ -1394,7 +1408,10 @@ body.ag-ouvert{overflow:hidden}
         }).catch(function (x) { atMsg(x.message); });
       });
       if ($('#at-publier')) $('#at-publier').addEventListener('click', function () {
-        if (!confirm('Publier ' + signees + ' question(s) signée(s) dans le DA ? Les stagiaires les verront dès leur prochaine séance.')) return;
+        var alertes = (AT.ctlEtape || []).filter(function (c) { return c.niveau === 'alerte'; });
+        var avant = alertes.length ? 'ATTENTION — le contrôle d’ensemble signale ' + alertes.length + ' alerte' + (alertes.length > 1 ? 's' : '') + ' sur cette étape :\n' +
+          alertes.map(function (c) { return '• ' + c.titre; }).join('\n') + '\n\n' : '';
+        if (!confirm(avant + 'Publier ' + signees + ' question(s) signée(s) dans le DA ? Les stagiaires les verront dès leur prochaine séance.')) return;
         this.disabled = true;
         atAppel('publier', { p_etape_id: e.etape_id }).then(function (n) {
           atMsg(n + ' question(s) publiée(s) dans le DA.', 'ok'); atEtapeRecharger();
@@ -1411,6 +1428,51 @@ body.ag-ouvert{overflow:hidden}
       });
     }).catch(function (x) { atMsg(x.message); });
   }
+  /* --- Contrôle d'ensemble (brique 2, 19/11/2026) : lms.atelier_controle_etape / _da.
+   *     Porte sur l'étape telle qu'elle sera après publication de l'atelier.
+   *     Il avertit, il ne bloque pas : la décision reste à la direction. --- */
+  var CE_NIVEAUX = { alerte: 'À corriger', attention: 'À examiner', ok: 'Rien à signaler', info: 'Constat' };
+  function atControleDa(z) {
+    atAppel('controle_da', { p_da_id: AT.daId }).then(function (r) {
+      (r || []).forEach(function (c) {
+        var td = z.querySelector('td[data-ce="' + c.etape_id + '"]'); if (!td) return;
+        var h = '';
+        if (c.alertes) h += '<span class="ce-badge alerte">' + c.alertes + ' à corriger</span>';
+        if (c.attentions) h += '<span class="ce-badge attention">' + c.attentions + ' à examiner</span>';
+        td.innerHTML = h || '<span class="ce-badge ok">OK</span>';
+      });
+    }).catch(function () {
+      Array.prototype.forEach.call(z.querySelectorAll('td[data-ce]'), function (td) { td.innerHTML = '<span class="muted">—</span>'; });
+    });
+  }
+  function atControleEtape(etapeId) {
+    var z = $('#at-ctl-etape'); if (!z) return;
+    z.innerHTML = '<div class="ce-panneau"><h3>Contrôle d’ensemble de l’étape</h3><div class="chargement">Analyse en cours…</div></div>';
+    atAppel('controle_etape', { p_etape_id: etapeId }).then(function (r) {
+      r = r || []; AT.ctlEtape = r;
+      if (!$('#at-ctl-etape') || !AT.etape || AT.etape.etape_id !== etapeId) return;
+      var ordre = { alerte: 0, attention: 1, info: 2, ok: 3 };
+      r.sort(function (a, b) { return ordre[a.niveau] - ordre[b.niveau]; });
+      var nA = r.filter(function (c) { return c.niveau === 'alerte'; }).length,
+          nE = r.filter(function (c) { return c.niveau === 'attention'; }).length;
+      $('#at-ctl-etape').innerHTML = '<div class="ce-panneau"><h3>Contrôle d’ensemble de l’étape ' +
+        (nA ? '<span class="ce-badge alerte">' + nA + ' à corriger</span>' : '') +
+        (nE ? '<span class="ce-badge attention">' + nE + ' à examiner</span>' : '') +
+        (!nA && !nE ? '<span class="ce-badge ok">OK</span>' : '') +
+        ' <button type="button" class="ag-lien" data-guide="ag-ensemble">Que faire ?</button></h3>' +
+        '<p class="muted" style="font-size:.82rem;margin:0 0 .3rem">Questions en ligne et questions de l’atelier, telles qu’elles seront après publication.</p>' +
+        r.map(function (c) {
+          var refs = c.refs || [];
+          return '<div class="ce-ligne ' + c.niveau + '"><b>' + echappe(CE_NIVEAUX[c.niveau] || c.niveau) + ' — ' + echappe(c.titre) + '</b>' +
+            '<p>' + echappe(c.message) + '</p>' +
+            (refs.length ? '<details><summary>' + refs.length + ' question' + (refs.length > 1 ? 's' : '') + ' concernée' + (refs.length > 1 ? 's' : '') + '</summary>' +
+              refs.map(function (x) { return '<code>' + echappe(x) + '</code>'; }).join('') + '</details>' : '') + '</div>';
+        }).join('') + '</div>';
+    }).catch(function (x) {
+      if ($('#at-ctl-etape')) $('#at-ctl-etape').innerHTML = '<div class="ce-panneau"><h3>Contrôle d’ensemble de l’étape</h3><p class="muted">Contrôle indisponible : ' + echappe(x.message) + '</p></div>';
+    });
+  }
+
   function atEtapeRecharger() {
     atAppel('etat_da', { p_da_id: AT.daId }).then(function (r) {
       AT.etape = (r || []).filter(function (x) { return x.etape_id === AT.etape.etape_id; })[0] || AT.etape; atEtape(true);
@@ -1803,7 +1865,7 @@ body.ag-ouvert{overflow:hidden}
         '<li><a href="#ag-premiers">Premiers pas en 2 minutes</a></li><li><a href="#ag-roles">Qui fait quoi</a></li>' +
         '<li><a href="#ag-circuit">Le circuit d’une question</a></li><li><a href="#ag-creer">Créer une question pas à pas</a></li>' +
         '<li><a href="#ag-types">Les 7 types de questions</a></li><li><a href="#ag-valeurs">Les valeurs datées</a></li><li><a href="#ag-lexique">Le lexique des équivalences</a></li>' +
-        '<li><a href="#ag-formules">Les formules de calcul</a></li><li><a href="#ag-controle">Le contrôle : messages et solutions</a></li>' +
+        '<li><a href="#ag-formules">Les formules de calcul</a></li><li><a href="#ag-controle">Le contrôle : messages et solutions</a></li><li><a href="#ag-ensemble">Le contrôle d’ensemble d’une étape</a></li>' +
         '<li><a href="#ag-valider">Valider, signer, publier</a></li><li><a href="#ag-reprise">Reprendre les questions déjà en ligne</a></li>' +
         '<li><a href="#ag-faq">Questions fréquentes</a></li></ol></nav>' +
 
@@ -1898,6 +1960,17 @@ body.ag-ouvert{overflow:hidden}
         '<p>Après chaque enregistrement, l’outil vérifie la question. Tant que le contrôle n’affiche pas <span class="at-ctl ok">OK</span>, elle ne peut pas être transmise ni validée.</p>' +
         '<table class="at-table"><thead><tr><th>Message</th><th>Que faire</th></tr></thead><tbody>' +
         AT_GUIDE_CONTROLE.map(function (m) { return '<tr><td><b>' + echappe(m[0]) + '</b></td><td>' + m[1] + '</td></tr>'; }).join('') +
+        '</tbody></table></section>' +
+
+      '<section id="ag-ensemble"><h3>9 bis. Le contrôle d’ensemble d’une étape</h3>' +
+        '<p>Certains défauts ne se voient pas question par question, mais seulement sur l’étape entière. Ce contrôle s’affiche en tête de chaque étape et dans la colonne « Contrôle d’ensemble » de la liste des étapes. ' +
+        'Il porte sur l’étape <b>telle qu’elle sera après publication</b> : questions déjà en ligne et questions de l’atelier ensemble. Il <b>avertit sans bloquer</b> : la direction reste seule juge au moment de publier, mais une alerte lui est rappelée avant la publication.</p>' +
+        '<table class="at-table"><thead><tr><th>Message</th><th>Ce qu’il signifie</th><th>Que faire</th></tr></thead><tbody>' +
+        '<tr><td><b>Réussite possible sans connaître le cours</b></td><td>Un stagiaire qui cocherait toujours la même proposition atteindrait le seuil de l’étape. C’est une alerte quand l’étape est évaluée.</td><td>Déplacez la bonne réponse : visez à peu près le même nombre de bonnes réponses en position 1, 2, 3 et 4.</td></tr>' +
+        '<tr><td><b>Bonne réponse trop souvent au même endroit</b></td><td>Sans atteindre le seuil, la bonne réponse se concentre sur une position (au-delà de 20 points au-dessus d’une répartition égale).</td><td>Même correction. La ligne « Position de la bonne réponse » donne le décompte.</td></tr>' +
+        '<tr><td><b>Bonne réponse repérable à sa longueur</b></td><td>Dans plus de la moitié des questions, la bonne réponse est la plus longue des propositions — un réflexe bien connu des stagiaires.</td><td>Allongez et précisez les mauvaises réponses, ou resserrez la bonne.</td></tr>' +
+        '<tr><td><b>Questions presque identiques dans l’étape</b></td><td>Deux questions du même atelier ont un énoncé à 85 % identique. Les nombres comptent : deux calculs sur des montants différents ne sont pas signalés.</td><td>Supprimez le doublon ou changez la situation.</td></tr>' +
+        '<tr><td><b>Questions reprises d’autres étapes du DA</b></td><td>Étapes évaluées seulement : des énoncés reprennent presque mot pour mot ceux d’un exercice ou d’un QCM du même DA. Au-delà de 30 % des questions, c’est une alerte.</td><td>Reformulez en changeant la situation, les chiffres ou l’angle : l’évaluation doit vérifier la compréhension, pas la mémoire des énoncés.</td></tr>' +
         '</tbody></table></section>' +
 
       '<section id="ag-valider"><h3>10. Valider, signer, publier</h3>' +
